@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2024-06-22
+
+### Added
+- Comprehensive embed code section on form detail page
+- React and Vue component examples for each form
+- Current security settings display on detail page
+- "Back to Overview" navigation button
+- Warning message when embedding is not enabled
+
+### Changed
+- Simplified menu text from "JS Embed Analytics" to "JS Embed"
+- Plugin action link text from "Analytics" to "JS Embed"
+- All page titles simplified to "JavaScript Embed"
+
+### Removed
+- Non-functional Settings link from overview page
+
+### Improved
+- Better organized form detail page with embed instructions
+- Enhanced styling for code examples
+- More intuitive navigation flow
+
 ## [0.1.3] - 2024-06-22
 
 ### Fixed
@@ -67,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Payment fields not yet fully supported
 - Limited support for third-party Gravity Forms add-ons
 
+[0.1.4]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.0...v0.1.1
