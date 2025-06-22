@@ -46,7 +46,8 @@ class GF_JS_Embed_Admin {
         $menu_items[] = [
             'name' => 'gf_js_embed',
             'label' => __('JavaScript Embed', 'gf-js-embed'),
-            'icon' => 'dashicons-embed-generic'
+            'icon' => 'dashicons-embed-generic',
+            'capability' => 'gravityforms_edit_forms'
         ];
         return $menu_items;
     }
@@ -55,6 +56,26 @@ class GF_JS_Embed_Admin {
      * Form settings page
      */
     public function form_settings_page($form) {
+        // Ensure Gravity Forms is available
+        if (!class_exists('GFCommon')) {
+            ?>
+            <div class="notice notice-error">
+                <p><?php _e('Gravity Forms is not available.', 'gf-js-embed'); ?></p>
+            </div>
+            <?php
+            return;
+        }
+        
+        // Check user capabilities
+        if (!current_user_can('gravityforms_edit_forms') && !current_user_can('manage_options')) {
+            ?>
+            <div class="notice notice-error">
+                <p><?php _e('You do not have permission to access this page.', 'gf-js-embed'); ?></p>
+            </div>
+            <?php
+            return;
+        }
+        
         // Ensure we have a valid form
         if (!$form || !isset($form['id'])) {
             ?>

@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2025-06-22
+
+### Fixed
+- Critical permission error when accessing form settings pages (#12)
+- Added proper capability declaration to Gravity Forms menu item
+- Added capability checks for both gravityforms_edit_forms and manage_options
+- Added validation to ensure Gravity Forms is loaded before accessing its functions
+- Improved error handling with user-friendly messages
+
+### Security
+- Properly enforced WordPress capability system for form settings access
+
 ## [0.1.4] - 2024-06-22
 
 ### Added
@@ -89,6 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Payment fields not yet fully supported
 - Limited support for third-party Gravity Forms add-ons
 
+[0.1.5]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.1...v0.1.2
