@@ -3,7 +3,7 @@
  * Plugin Name: Gravity Forms JavaScript Embed
  * Plugin URI: https://github.com/jezweb/js-gravity-forms-embed
  * Description: Embed Gravity Forms on any website using JavaScript instead of iframes. Provides a modern, performant alternative to iframe embedding with full support for all Gravity Forms features.
- * Version: 0.1.5
+ * Version: 0.2.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: Jezweb
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('GF_JS_EMBED_VERSION', '0.1.5');
+define('GF_JS_EMBED_VERSION', '0.2.0');
 define('GF_JS_EMBED_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GF_JS_EMBED_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('GF_JS_EMBED_PLUGIN_FILE', __FILE__);
@@ -47,6 +47,9 @@ function gf_js_embed_missing_gf_notice() {
 }
 
 function gf_js_embed_load_plugin() {
+    // Track load time
+    define('GF_JS_EMBED_LOAD_TIME', (microtime(true) - $_SERVER['REQUEST_TIME_FLOAT']) * 1000);
+    
     // Load required files
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-api.php';
@@ -55,9 +58,15 @@ function gf_js_embed_load_plugin() {
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-analytics.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-styling.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-i18n.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-testing.php';
     
     // Initialize the plugin
     GF_JavaScript_Embed::get_instance();
+    
+    // Initialize testing dashboard
+    if (is_admin()) {
+        GF_JS_Embed_Testing::get_instance();
+    }
 }
 
 // Activation hook

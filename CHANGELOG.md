@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2025-06-22
+
+### Added
+- Comprehensive testing dashboard for plugin validation (#13)
+- System health checks including WordPress, PHP, and Gravity Forms compatibility
+- Form configuration tests to validate embed settings
+- API endpoint tests with response time measurement
+- JavaScript SDK validation tests
+- Security feature testing including rate limiting and domain restrictions
+- Performance tests for database, memory, and API response times
+- One-click test execution with real-time progress updates
+- Export test results as JSON for support requests
+- Detailed test results with pass/fail/warning indicators
+- Actionable fix suggestions for failed tests
+- Responsive design for mobile compatibility
+
+### Improved
+- Admin menu organization with new Testing submenu
+- Plugin load time tracking for performance monitoring
+- Enhanced error handling throughout the plugin
+
 ## [0.1.5] - 2025-06-22
 
 ### Fixed
@@ -101,6 +122,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Payment fields not yet fully supported
 - Limited support for third-party Gravity Forms add-ons
 
+[0.2.0]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.2...v0.1.3
