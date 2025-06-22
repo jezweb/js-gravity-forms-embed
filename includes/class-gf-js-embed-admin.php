@@ -426,6 +426,13 @@ class GF_JS_Embed_Admin {
         <div class="wrap">
             <h1><?php _e('JavaScript Embed Analytics', 'gf-js-embed'); ?></h1>
             
+            <div class="notice notice-info">
+                <p>
+                    <?php _e('The JavaScript Embed plugin allows you to embed Gravity Forms on any website using JavaScript. Enable embedding for individual forms and track their performance across different domains.', 'gf-js-embed'); ?>
+                    <a href="https://github.com/jezweb/js-gravity-forms-embed#readme" target="_blank"><?php _e('View Documentation', 'gf-js-embed'); ?></a>
+                </p>
+            </div>
+            
             <table class="wp-list-table widefat striped">
                 <thead>
                     <tr>
@@ -457,6 +464,10 @@ class GF_JS_Embed_Admin {
                         <td>
                             <a href="<?php echo admin_url('admin.php?page=gf_js_embed_analytics&form_id=' . $form['id']); ?>">
                                 <?php _e('View Details', 'gf-js-embed'); ?>
+                            </a>
+                            |
+                            <a href="<?php echo admin_url('admin.php?page=gf_edit_forms&view=settings&subview=gf_js_embed&id=' . $form['id']); ?>">
+                                <?php _e('Settings', 'gf-js-embed'); ?>
                             </a>
                         </td>
                     </tr>

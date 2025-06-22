@@ -36,6 +36,10 @@ class GF_JavaScript_Embed {
     private function init_hooks() {
         add_action('init', [$this, 'init']);
         
+        // Add plugin action links
+        add_filter('plugin_action_links_' . plugin_basename(GF_JS_EMBED_PLUGIN_FILE), [$this, 'add_plugin_action_links']);
+        add_filter('plugin_row_meta', [$this, 'add_plugin_row_meta'], 10, 2);
+        
         // Initialize components
         GF_JS_Embed_API::get_instance();
         GF_JS_Embed_Admin::get_instance();
@@ -116,5 +120,56 @@ class GF_JavaScript_Embed {
      */
     public static function get_plugin_dir() {
         return GF_JS_EMBED_PLUGIN_DIR;
+    }
+    
+    /**
+     * Add plugin action links
+     */
+    public function add_plugin_action_links($links) {
+        $settings_link = sprintf(
+            '<a href="%s">%s</a>',
+            admin_url('admin.php?page=gf_js_embed_analytics'),
+            __('Analytics', 'gf-js-embed')
+        );
+        
+        $docs_link = sprintf(
+            '<a href="%s" target="_blank">%s</a>',
+            'https://github.com/jezweb/js-gravity-forms-embed#readme',
+            __('Documentation', 'gf-js-embed')
+        );
+        
+        array_unshift($links, $settings_link);
+        $links[] = $docs_link;
+        
+        return $links;
+    }
+    
+    /**
+     * Add plugin row meta
+     */
+    public function add_plugin_row_meta($links, $file) {
+        if (plugin_basename(GF_JS_EMBED_PLUGIN_FILE) !== $file) {
+            return $links;
+        }
+        
+        $row_meta = [
+            'docs' => sprintf(
+                '<a href="%s" target="_blank">%s</a>',
+                'https://github.com/jezweb/js-gravity-forms-embed#readme',
+                __('View Documentation', 'gf-js-embed')
+            ),
+            'support' => sprintf(
+                '<a href="%s" target="_blank">%s</a>',
+                'https://github.com/jezweb/js-gravity-forms-embed/issues',
+                __('Support', 'gf-js-embed')
+            ),
+            'github' => sprintf(
+                '<a href="%s" target="_blank">%s</a>',
+                'https://github.com/jezweb/js-gravity-forms-embed',
+                __('GitHub', 'gf-js-embed')
+            )
+        ];
+        
+        return array_merge($links, $row_meta);
     }
 }
