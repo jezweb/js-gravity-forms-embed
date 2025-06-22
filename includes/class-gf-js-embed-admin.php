@@ -55,6 +55,16 @@ class GF_JS_Embed_Admin {
      * Form settings page
      */
     public function form_settings_page($form) {
+        // Ensure we have a valid form
+        if (!$form || !isset($form['id'])) {
+            ?>
+            <div class="notice notice-error">
+                <p><?php _e('Invalid form specified.', 'gf-js-embed'); ?></p>
+            </div>
+            <?php
+            return;
+        }
+        
         $settings = self::get_form_settings($form['id']);
         ?>
         <h3>
@@ -420,6 +430,19 @@ class GF_JS_Embed_Admin {
      * Analytics overview page
      */
     private function analytics_overview_page() {
+        // Check if Gravity Forms is active
+        if (!class_exists('GFAPI')) {
+            ?>
+            <div class="wrap">
+                <h1><?php _e('JavaScript Embed Analytics', 'gf-js-embed'); ?></h1>
+                <div class="notice notice-error">
+                    <p><?php _e('Gravity Forms must be installed and activated to use this plugin.', 'gf-js-embed'); ?></p>
+                </div>
+            </div>
+            <?php
+            return;
+        }
+        
         $forms = GFAPI::get_forms();
         
         ?>
@@ -466,7 +489,7 @@ class GF_JS_Embed_Admin {
                                 <?php _e('View Details', 'gf-js-embed'); ?>
                             </a>
                             |
-                            <a href="<?php echo admin_url('admin.php?page=gf_edit_forms&view=settings&subview=gf_js_embed&id=' . $form['id']); ?>">
+                            <a href="<?php echo admin_url('admin.php?page=gf_form_settings&subview=gf_js_embed&id=' . $form['id']); ?>">
                                 <?php _e('Settings', 'gf-js-embed'); ?>
                             </a>
                         </td>
