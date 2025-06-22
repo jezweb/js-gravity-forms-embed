@@ -1,0 +1,243 @@
+/**
+ * Admin styles for Gravity Forms JavaScript Embed
+ */
+
+/* Settings Page */
+.gf-embed-code-section {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+}
+
+.gf-embed-code-section h4 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.gf-embed-code-section textarea {
+    font-family: Consolas, Monaco, 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    width: 100%;
+    resize: vertical;
+}
+
+.gf-embed-code-section textarea:focus {
+    background: #f0f8ff;
+    border-color: #0073aa;
+    outline: none;
+}
+
+/* Analytics Dashboard */
+.gf-embed-analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 20px 0 30px;
+}
+
+.gf-embed-stat-box {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 20px;
+    text-align: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.gf-embed-stat-box:hover {
+    border-color: #0073aa;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.gf-embed-stat-box h3 {
+    margin: 0 0 10px 0;
+    color: #666;
+    font-size: 14px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.gf-embed-stat-number {
+    font-size: 36px;
+    font-weight: 700;
+    color: #23282d;
+    margin: 0;
+    line-height: 1;
+}
+
+/* Status Indicators */
+.gf-embed-status {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 500;
+}
+
+.gf-embed-status::before {
+    content: '●';
+    margin-right: 5px;
+    font-size: 12px;
+}
+
+.gf-embed-status.enabled {
+    color: #46b450;
+}
+
+.gf-embed-status.disabled {
+    color: #999;
+}
+
+/* Settings Table */
+.form-table .gf-embed-domains {
+    width: 100%;
+    max-width: 500px;
+}
+
+.form-table code {
+    background: #f1f1f1;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 13px;
+}
+
+/* Help Text */
+.gf-embed-help {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background: #666;
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 16px;
+    font-size: 12px;
+    cursor: help;
+    margin-left: 5px;
+}
+
+.gf-embed-help:hover {
+    background: #0073aa;
+}
+
+/* Button Styles */
+.gf-embed-button {
+    display: inline-block;
+    padding: 6px 12px;
+    background: #0073aa;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 3px;
+    border: 1px solid #0073aa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.gf-embed-button:hover {
+    background: #005a87;
+    border-color: #005a87;
+    color: #fff;
+}
+
+.gf-embed-button.secondary {
+    background: #fff;
+    color: #0073aa;
+}
+
+.gf-embed-button.secondary:hover {
+    background: #f8f9fa;
+}
+
+/* Charts Container */
+.gf-embed-chart-container {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    padding: 20px;
+    border-radius: 4px;
+    margin: 20px 0;
+}
+
+.gf-embed-chart-container h3 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Domain List */
+.gf-embed-domains-list {
+    margin: 20px 0;
+}
+
+.gf-embed-domain-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    margin-bottom: -1px;
+}
+
+.gf-embed-domain-item:first-child {
+    border-radius: 4px 4px 0 0;
+}
+
+.gf-embed-domain-item:last-child {
+    border-radius: 0 0 4px 4px;
+}
+
+.gf-embed-domain-item:hover {
+    background: #f8f9fa;
+}
+
+.gf-embed-domain-name {
+    font-weight: 500;
+}
+
+.gf-embed-domain-stats {
+    color: #666;
+    font-size: 14px;
+}
+
+/* Messages */
+.gf-embed-notice {
+    background: #fff;
+    border-left: 4px solid #ffb900;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+    margin: 20px 0;
+    padding: 12px;
+}
+
+.gf-embed-notice.success {
+    border-left-color: #46b450;
+}
+
+.gf-embed-notice.error {
+    border-left-color: #dc3232;
+}
+
+.gf-embed-notice.info {
+    border-left-color: #00a0d2;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .gf-embed-analytics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .gf-embed-stat-number {
+        font-size: 28px;
+    }
+    
+    .form-table textarea {
+        width: 100%;
+    }
+}

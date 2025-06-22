@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock API Server - Gravity Forms JS Embed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        
+        .server-status {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #333;
+            border-radius: 20px;
+            margin: 10px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-indicator.online {
+            background: #4CAF50;
+            box-shadow: 0 0 10px #4CAF50;
+        }
+        
+        .status-indicator.offline {
+            background: #f44336;
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .endpoint-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .endpoint-card {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .endpoint-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #4CAF50, #2196F3);
+        }
+        
+        .endpoint-card h3 {
+            margin-top: 0;
+            color: #4CAF50;
+            font-size: 1.2em;
+        }
+        
+        .endpoint-card code {
+            display: block;
+            background: #1a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            color: #ffa726;
+            word-break: break-all;
+        }
+        
+        .request-log {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        
+        .log-entry {
+            margin: 5px 0;
+            padding: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .log-entry .method {
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+        
+        .method.GET { background: #4CAF50; color: #fff; }
+        .method.POST { background: #2196F3; color: #fff; }
+        .method.OPTIONS { background: #FF9800; color: #fff; }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 5px;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .test-form-container {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-box {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #999;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Mock API Server</h1>
+        <p>Gravity Forms JavaScript Embed Testing Environment</p>
+        <div class="server-status">
+            <span class="status-indicator online" id="status-indicator"></span>
+            <span id="server-status">Server Online</span>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="stat-box">
+            <div class="stat-number" id="request-count">0</div>
+            <div class="stat-label">Total Requests</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" id="form-loads">0</div>
+            <div class="stat-label">Forms Loaded</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" id="submissions">0</div>
+            <div class="stat-label">Submissions</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" id="errors">0</div>
+            <div class="stat-label">Errors</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button onclick="clearLog()">Clear Log</button>
+        <button onclick="resetStats()">Reset Stats</button>
+        <button onclick="simulateError()">Simulate Error</button>
+        <button onclick="toggleLatency()">Toggle Latency</button>
+    </div>
+
+    <div class="endpoint-grid">
+        <div class="endpoint-card">
+            <h3>GET /form/{id}</h3>
+            <p>Retrieve form configuration and fields</p>
+            <code>/wp-json/gf-embed/v1/form/1</code>
+            <p>Returns: Form structure with all fields</p>
+        </div>
+        
+        <div class="endpoint-card">
+            <h3>POST /submit/{id}</h3>
+            <p>Submit form data</p>
+            <code>/wp-json/gf-embed/v1/submit/1</code>
+            <p>Returns: Success confirmation or validation errors</p>
+        </div>
+        
+        <div class="endpoint-card">
+            <h3>GET /assets/{id}</h3>
+            <p>Get form CSS and translations</p>
+            <code>/wp-json/gf-embed/v1/assets/1</code>
+            <p>Returns: Styles and localization data</p>
+        </div>
+        
+        <div class="endpoint-card">
+            <h3>POST /security/check</h3>
+            <p>Security validation endpoint</p>
+            <code>/wp-json/gf-embed/v1/security/check</code>
+            <p>Returns: Security tokens and validation</p>
+        </div>
+    </div>
+
+    <h2>📋 Request Log</h2>
+    <div class="request-log" id="request-log"></div>
+
+    <div class="test-form-container">
+        <h2>🧪 Test Embedded Form</h2>
+        <p>This form is loaded using the mock API:</p>
+        <div id="test-form-1" data-gf-form="1"></div>
+    </div>
+
+    <!-- Load the SDK -->
+    <script src="../assets/js/gf-embed-sdk.js"></script>
+
+    <script>
+        // Mock server state
+        let serverRunning = true;
+        let addLatency = false;
+        let stats = {
+            requests: 0,
+            formLoads: 0,
+            submissions: 0,
+            errors: 0
+        };
+
+        // Mock form data
+        const mockForms = {
+            1: {
+                id: 1,
+                title: "Contact Form",
+                description: "Get in touch with us",
+                displayTitle: true,
+                displayDescription: true,
+                button: { text: "Send Message" },
+                fields: [
+                    {
+                        id: 1,
+                        type: "text",
+                        label: "Full Name",
+                        isRequired: true,
+                        placeholder: "John Doe"
+                    },
+                    {
+                        id: 2,
+                        type: "email",
+                        label: "Email Address",
+                        isRequired: true,
+                        placeholder: "john@example.com"
+                    },
+                    {
+                        id: 3,
+                        type: "select",
+                        label: "Subject",
+                        isRequired: true,
+                        choices: [
+                            { text: "General Inquiry", value: "general" },
+                            { text: "Technical Support", value: "support" },
+                            { text: "Sales Question", value: "sales" },
+                            { text: "Other", value: "other" }
+                        ]
+                    },
+                    {
+                        id: 4,
+                        type: "textarea",
+                        label: "Message",
+                        isRequired: true,
+                        placeholder: "Tell us more..."
+                    },
+                    {
+                        id: 5,
+                        type: "checkbox",
+                        label: "Preferences",
+                        choices: [
+                            { text: "Subscribe to newsletter", value: "newsletter" },
+                            { text: "Receive product updates", value: "updates" }
+                        ]
+                    },
+                    {
+                        id: 6,
+                        type: "signature",
+                        label: "Digital Signature",
+                        isRequired: false
+                    }
+                ]
+            }
+        };
+
+        // Log request
+        function logRequest(method, url, response) {
+            const log = document.getElementById('request-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            const timestamp = new Date().toLocaleTimeString();
+            const statusColor = response.success ? '#4CAF50' : '#f44336';
+            
+            entry.innerHTML = `
+                <span>
+                    <span class="method ${method}">${method}</span>
+                    ${url}
+                </span>
+                <span style="color: ${statusColor}">${response.success ? '200 OK' : '400 ERROR'}</span>
+            `;
+            
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 50 entries
+            while (log.children.length > 50) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('request-count').textContent = stats.requests;
+            document.getElementById('form-loads').textContent = stats.formLoads;
+            document.getElementById('submissions').textContent = stats.submissions;
+            document.getElementById('errors').textContent = stats.errors;
+        }
+
+        // Mock fetch
+        window.fetch = function(url, options = {}) {
+            return new Promise((resolve, reject) => {
+                stats.requests++;
+                updateStats();
+
+                // Add latency if enabled
+                const delay = addLatency ? Math.random() * 1000 + 500 : 0;
+
+                setTimeout(() => {
+                    if (!serverRunning) {
+                        stats.errors++;
+                        updateStats();
+                        reject(new Error('Server is offline'));
+                        return;
+                    }
+
+                    const method = options.method || 'GET';
+                    let response = { success: false, message: 'Not found' };
+
+                    // Handle different endpoints
+                    if (url.includes('/form/')) {
+                        const formId = url.match(/\/form\/(\d+)/)?.[1];
+                        if (mockForms[formId]) {
+                            response = {
+                                success: true,
+                                form: mockForms[formId]
+                            };
+                            stats.formLoads++;
+                        }
+                    } else if (url.includes('/submit/')) {
+                        // Simulate form submission
+                        const random = Math.random();
+                        if (random > 0.1) {
+                            response = {
+                                success: true,
+                                entry_id: Math.floor(Math.random() * 10000),
+                                confirmation: {
+                                    type: 'message',
+                                    message: '✅ Thank you! Your submission has been received.'
+                                }
+                            };
+                            stats.submissions++;
+                        } else {
+                            response = {
+                                success: false,
+                                errors: {
+                                    2: 'Please enter a valid email address',
+                                    4: 'Message is required'
+                                }
+                            };
+                            stats.errors++;
+                        }
+                    } else if (url.includes('/assets/')) {
+                        response = {
+                            success: true,
+                            css: `
+                                .gf-embedded-form { 
+                                    background: #333; 
+                                    padding: 20px; 
+                                    border-radius: 8px; 
+                                    color: #fff;
+                                }
+                                .gf-field label { color: #4CAF50; }
+                                .gf-button { background: #4CAF50; }
+                                .gf-button:hover { background: #45a049; }
+                            `,
+                            translations: {
+                                submit: 'Send Message',
+                                loading: 'Loading form...',
+                                required: 'This field is required'
+                            }
+                        };
+                    } else if (url.includes('/security/check')) {
+                        response = {
+                            success: true,
+                            domain_allowed: true,
+                            rate_limit_ok: true,
+                            honeypot: {
+                                name: 'gf_honeypot_abc123',
+                                html: '<input type="text" name="gf_honeypot_abc123" style="display:none">'
+                            },
+                            csrf_token: 'mock_csrf_token_' + Date.now()
+                        };
+                    }
+
+                    logRequest(method, url, response);
+                    updateStats();
+
+                    resolve({
+                        ok: response.success,
+                        status: response.success ? 200 : 400,
+                        json: () => Promise.resolve(response),
+                        text: () => Promise.resolve(JSON.stringify(response))
+                    });
+                }, delay);
+            });
+        };
+
+        // Control functions
+        function clearLog() {
+            document.getElementById('request-log').innerHTML = '';
+        }
+
+        function resetStats() {
+            stats = { requests: 0, formLoads: 0, submissions: 0, errors: 0 };
+            updateStats();
+        }
+
+        function simulateError() {
+            serverRunning = false;
+            document.getElementById('status-indicator').className = 'status-indicator offline';
+            document.getElementById('server-status').textContent = 'Server Offline';
+            
+            setTimeout(() => {
+                serverRunning = true;
+                document.getElementById('status-indicator').className = 'status-indicator online';
+                document.getElementById('server-status').textContent = 'Server Online';
+            }, 3000);
+        }
+
+        function toggleLatency() {
+            addLatency = !addLatency;
+            logRequest('INFO', 'Latency simulation ' + (addLatency ? 'enabled' : 'disabled'), { success: true });
+        }
+
+        // Initialize
+        window.addEventListener('load', function() {
+            // Set API URL
+            GravityFormsEmbed.apiUrl = '/wp-json/gf-embed/v1';
+            
+            // Log initial load
+            logRequest('INFO', 'Mock server started', { success: true });
+            
+            // Listen for form events
+            document.addEventListener('gfEmbedFormReady', function(e) {
+                logRequest('EVENT', 'Form ready: ' + e.detail.formId, { success: true });
+            });
+            
+            document.addEventListener('gfEmbedSubmitSuccess', function(e) {
+                logRequest('EVENT', 'Submission success: Entry #' + e.detail.entryId, { success: true });
+            });
+            
+            document.addEventListener('gfEmbedSubmitError', function(e) {
+                logRequest('EVENT', 'Submission error', { success: false });
+            });
+        });
+    </script>
+</body>
+</html>
