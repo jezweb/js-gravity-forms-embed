@@ -326,8 +326,8 @@ class GF_JS_Embed_Admin {
     public function add_admin_menu() {
         add_submenu_page(
             'gf_edit_forms',
-            __('JavaScript Embed Analytics', 'gf-js-embed'),
-            __('JS Embed Analytics', 'gf-js-embed'),
+            __('JavaScript Embed', 'gf-js-embed'),
+            __('JS Embed', 'gf-js-embed'),
             'manage_options',
             'gf_js_embed_analytics',
             [$this, 'analytics_page']
@@ -354,7 +354,26 @@ class GF_JS_Embed_Admin {
         
         ?>
         <div class="wrap">
-            <h1><?php echo sprintf(__('JavaScript Embed Analytics: %s', 'gf-js-embed'), esc_html($form['title'])); ?></h1>
+            <h1>
+                <?php echo sprintf(__('JavaScript Embed: %s', 'gf-js-embed'), esc_html($form['title'])); ?>
+                <a href="<?php echo admin_url('admin.php?page=gf_js_embed_analytics'); ?>" class="page-title-action">
+                    <?php _e('Back to Overview', 'gf-js-embed'); ?>
+                </a>
+            </h1>
+            
+            <?php 
+            $settings = self::get_form_settings($form_id);
+            if (!$settings['enabled']) : 
+            ?>
+                <div class="notice notice-warning">
+                    <p>
+                        <?php _e('JavaScript embedding is not enabled for this form.', 'gf-js-embed'); ?>
+                        <a href="<?php echo admin_url('admin.php?page=gf_form_settings&subview=gf_js_embed&id=' . $form_id); ?>">
+                            <?php _e('Enable it now', 'gf-js-embed'); ?>
+                        </a>
+                    </p>
+                </div>
+            <?php endif; ?>
             
             <div class="gf-embed-analytics-grid">
                 <div class="gf-embed-stat-box">
@@ -397,6 +416,121 @@ class GF_JS_Embed_Admin {
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            
+            <?php if ($settings['enabled']) : ?>
+            <div style="margin-top: 40px;">
+                <h2><?php _e('Embed This Form', 'gf-js-embed'); ?></h2>
+                <p><?php _e('Copy and paste one of these code snippets to embed this form on any website:', 'gf-js-embed'); ?></p>
+                
+                <div class="gf-embed-code-section">
+                    <h3><?php _e('Method 1: Simple Embed', 'gf-js-embed'); ?></h3>
+                    <p class="description"><?php _e('The easiest way to embed your form. Just copy and paste this code:', 'gf-js-embed'); ?></p>
+                    <textarea readonly class="large-text code" rows="3" onclick="this.select();"><!-- <?php echo esc_html($form['title']); ?> -->
+<div id="gf-form-<?php echo $form_id; ?>"></div>
+<script src="<?php echo esc_url(home_url('/gf-js-embed/v1/embed.js?form=' . $form_id)); ?>"></script></textarea>
+                </div>
+                
+                <div class="gf-embed-code-section">
+                    <h3><?php _e('Method 2: Multiple Forms on Same Page', 'gf-js-embed'); ?></h3>
+                    <p class="description"><?php _e('Use this method if you want to embed multiple forms on the same page:', 'gf-js-embed'); ?></p>
+                    <textarea readonly class="large-text code" rows="7" onclick="this.select();"><!-- Load the SDK once -->
+<script src="<?php echo esc_url(home_url('/gf-js-embed/v1/embed.js')); ?>"></script>
+
+<!-- <?php echo esc_html($form['title']); ?> -->
+<div data-gf-form="<?php echo $form_id; ?>"></div>
+
+<!-- Add more forms as needed -->
+<div data-gf-form="another-form-id"></div></textarea>
+                </div>
+                
+                <?php if ($settings['api_key']) : ?>
+                <div class="gf-embed-code-section">
+                    <h3><?php _e('Method 3: Secure Embed with API Key', 'gf-js-embed'); ?></h3>
+                    <p class="description"><?php _e('For additional security, use your API key:', 'gf-js-embed'); ?></p>
+                    <textarea readonly class="large-text code" rows="3" onclick="this.select();"><!-- Secure embed for <?php echo esc_html($form['title']); ?> -->
+<div data-gf-form="<?php echo $form_id; ?>" data-gf-api-key="<?php echo esc_attr($settings['api_key']); ?>"></div>
+<script src="<?php echo esc_url(home_url('/gf-js-embed/v1/embed.js')); ?>"></script></textarea>
+                </div>
+                <?php endif; ?>
+                
+                <div class="gf-embed-code-section">
+                    <h3><?php _e('Integration Examples', 'gf-js-embed'); ?></h3>
+                    <div class="gf-integration-examples">
+                        <div class="gf-example-card">
+                            <h4><?php _e('React Component', 'gf-js-embed'); ?></h4>
+                            <pre class="code"><code>import React, { useEffect } from 'react';
+
+function <?php echo str_replace([' ', '-'], '', ucwords($form['title'])); ?>Form() {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = '<?php echo esc_url(home_url('/gf-js-embed/v1/embed.js?form=' . $form_id)); ?>';
+    script.async = true;
+    document.body.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+  
+  return &lt;div id="gf-form-<?php echo $form_id; ?>"&gt;&lt;/div&gt;;
+}</code></pre>
+                        </div>
+                        
+                        <div class="gf-example-card">
+                            <h4><?php _e('Vue Component', 'gf-js-embed'); ?></h4>
+                            <pre class="code"><code>&lt;template&gt;
+  &lt;div id="gf-form-<?php echo $form_id; ?>"&gt;&lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+export default {
+  mounted() {
+    const script = document.createElement('script');
+    script.src = '<?php echo esc_url(home_url('/gf-js-embed/v1/embed.js?form=' . $form_id)); ?>';
+    script.async = true;
+    document.body.appendChild(script);
+  }
+}
+&lt;/script&gt;</code></pre>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gf-embed-code-section">
+                    <h3><?php _e('Current Settings', 'gf-js-embed'); ?></h3>
+                    <table class="form-table">
+                        <tr>
+                            <th><?php _e('Allowed Domains', 'gf-js-embed'); ?></th>
+                            <td>
+                                <?php if (empty($settings['allowed_domains']) || in_array('*', $settings['allowed_domains'])) : ?>
+                                    <span class="dashicons dashicons-warning" style="color: #f39c12;"></span> 
+                                    <?php _e('All domains allowed', 'gf-js-embed'); ?>
+                                <?php else : ?>
+                                    <ul style="margin: 0;">
+                                        <?php foreach ($settings['allowed_domains'] as $domain) : ?>
+                                            <li><?php echo esc_html($domain); ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><?php _e('Security Level', 'gf-js-embed'); ?></th>
+                            <td><?php echo ucfirst($settings['security_level']); ?></td>
+                        </tr>
+                        <tr>
+                            <th><?php _e('Rate Limit', 'gf-js-embed'); ?></th>
+                            <td><?php echo $settings['rate_limit']; ?> <?php _e('requests per hour', 'gf-js-embed'); ?></td>
+                        </tr>
+                    </table>
+                    <p>
+                        <a href="<?php echo admin_url('admin.php?page=gf_form_settings&subview=gf_js_embed&id=' . $form_id); ?>" class="button">
+                            <?php _e('Configure Settings', 'gf-js-embed'); ?>
+                        </a>
+                    </p>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
         
         <style>
@@ -422,6 +556,55 @@ class GF_JS_Embed_Admin {
                 color: #333;
                 margin: 0;
             }
+            .gf-embed-code-section {
+                margin: 30px 0;
+                background: #f8f8f8;
+                padding: 20px;
+                border-radius: 5px;
+                border: 1px solid #e0e0e0;
+            }
+            .gf-embed-code-section h3 {
+                margin-top: 0;
+                color: #333;
+            }
+            .gf-embed-code-section textarea {
+                font-family: Consolas, Monaco, monospace;
+                font-size: 13px;
+                background: #fff;
+                border: 1px solid #ddd;
+            }
+            .gf-embed-code-section .description {
+                color: #666;
+                margin-bottom: 10px;
+            }
+            .gf-integration-examples {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+                gap: 20px;
+                margin-top: 15px;
+            }
+            .gf-example-card {
+                background: #fff;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                padding: 15px;
+            }
+            .gf-example-card h4 {
+                margin-top: 0;
+                color: #555;
+            }
+            .gf-example-card pre {
+                background: #f5f5f5;
+                border: 1px solid #e0e0e0;
+                border-radius: 3px;
+                padding: 10px;
+                overflow-x: auto;
+                margin: 0;
+            }
+            .gf-example-card code {
+                font-size: 12px;
+                line-height: 1.4;
+            }
         </style>
         <?php
     }
@@ -434,7 +617,7 @@ class GF_JS_Embed_Admin {
         if (!class_exists('GFAPI')) {
             ?>
             <div class="wrap">
-                <h1><?php _e('JavaScript Embed Analytics', 'gf-js-embed'); ?></h1>
+                <h1><?php _e('JavaScript Embed', 'gf-js-embed'); ?></h1>
                 <div class="notice notice-error">
                     <p><?php _e('Gravity Forms must be installed and activated to use this plugin.', 'gf-js-embed'); ?></p>
                 </div>
@@ -447,7 +630,7 @@ class GF_JS_Embed_Admin {
         
         ?>
         <div class="wrap">
-            <h1><?php _e('JavaScript Embed Analytics', 'gf-js-embed'); ?></h1>
+            <h1><?php _e('JavaScript Embed', 'gf-js-embed'); ?></h1>
             
             <div class="notice notice-info">
                 <p>
@@ -487,10 +670,6 @@ class GF_JS_Embed_Admin {
                         <td>
                             <a href="<?php echo admin_url('admin.php?page=gf_js_embed_analytics&form_id=' . $form['id']); ?>">
                                 <?php _e('View Details', 'gf-js-embed'); ?>
-                            </a>
-                            |
-                            <a href="<?php echo admin_url('admin.php?page=gf_form_settings&subview=gf_js_embed&id=' . $form['id']); ?>">
-                                <?php _e('Settings', 'gf-js-embed'); ?>
                             </a>
                         </td>
                     </tr>

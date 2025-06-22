@@ -129,7 +129,7 @@ class GF_JavaScript_Embed {
         $settings_link = sprintf(
             '<a href="%s">%s</a>',
             admin_url('admin.php?page=gf_js_embed_analytics'),
-            __('Analytics', 'gf-js-embed')
+            __('JS Embed', 'gf-js-embed')
         );
         
         $docs_link = sprintf(
