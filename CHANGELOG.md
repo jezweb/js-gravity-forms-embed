@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3] - 2024-06-22
+
+### Fixed
+- Critical error when clicking Settings link from analytics page
+- Corrected form settings URL structure (gf_form_settings instead of gf_edit_forms)
+- Added error handling for missing Gravity Forms plugin
+- Added form validation to prevent critical errors
+
 ## [0.1.2] - 2024-06-22
 
 ### Added
@@ -59,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Payment fields not yet fully supported
 - Limited support for third-party Gravity Forms add-ons
 
+[0.1.3]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/jezweb/js-gravity-forms-embed/releases/tag/v0.1.0
