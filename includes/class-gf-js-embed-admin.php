@@ -79,7 +79,8 @@ class GF_JS_Embed_Admin {
             // Check if the dynamic save hook was already called by checking a flag
             if (!defined('GF_JS_EMBED_SETTINGS_SAVED')) {
                 $this->save_form_settings([], $form);
-                define('GF_JS_EMBED_SETTINGS_SAVED', true);
+                // Commented this out since it gives off duplicate constant on update/save
+                // define('GF_JS_EMBED_SETTINGS_SAVED', true);
             }
         }
         
