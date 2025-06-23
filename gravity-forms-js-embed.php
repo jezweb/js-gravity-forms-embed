@@ -3,7 +3,7 @@
  * Plugin Name: Gravity Forms JavaScript Embed
  * Plugin URI: https://github.com/jezweb/js-gravity-forms-embed
  * Description: Embed Gravity Forms on any website using JavaScript instead of iframes. Provides a modern, performant alternative to iframe embedding with full support for all Gravity Forms features.
- * Version: 0.2.2
+ * Version: 0.3.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: Jezweb
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('GF_JS_EMBED_VERSION', '0.2.2');
+define('GF_JS_EMBED_VERSION', '0.3.0');
 define('GF_JS_EMBED_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GF_JS_EMBED_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('GF_JS_EMBED_PLUGIN_FILE', __FILE__);

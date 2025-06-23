@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-06-23
+
+### Added
+- Comprehensive documentation suite (#21, #16, #6)
+- Complete user guide with setup, configuration, and usage instructions
+- Developer hooks reference with all WordPress and plugin-specific hooks
+- Troubleshooting guide with diagnostic steps and common solutions
+- API documentation covering REST endpoints and JavaScript SDK
+- Main documentation index with navigation and quick start guide
+
+### Documentation
+- `/docs/user-guide/README.md` - Complete user guide for end users
+- `/docs/developer/hooks-reference.md` - Developer reference for customization
+- `/docs/troubleshooting/README.md` - Comprehensive troubleshooting guide
+- `/docs/api/README.md` - REST API and JavaScript SDK documentation
+- `/docs/README.md` - Main documentation index and navigation
+
+### Improved
+- Professional-grade documentation for users at all technical levels
+- Clear navigation structure for different user types (users, developers, admins)
+- Comprehensive examples and code samples
+- Cross-references between documentation sections
+
 ## [0.2.2] - 2025-06-23
 
 ### Fixed
@@ -150,6 +173,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Payment fields not yet fully supported
 - Limited support for third-party Gravity Forms add-ons
 
+[0.3.0]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.2.2...v0.3.0
 [0.2.2]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.5...v0.2.0
