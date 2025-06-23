@@ -47,7 +47,8 @@
                 containers.forEach(container => {
                     const formId = container.getAttribute('data-gf-form');
                     const apiKey = container.getAttribute('data-gf-api-key');
-                    this.loadForm(formId, container, { apiKey });
+                    const theme = container.getAttribute('data-gf-theme');
+                    this.loadForm(formId, container, { apiKey, theme });
                 });
                 
                 // Check for form ID in script URL
@@ -92,8 +93,8 @@
             .then(data => {
                 if (data.success) {
                     this.forms[formId] = data.form;
-                    this.renderForm(data.form, container);
-                    this.loadAssets(formId);
+                    this.renderForm(data.form, container, options);
+                    this.loadAssets(formId, options);
                 } else {
                     this.showError(container, data.message);
                 }
@@ -122,8 +123,8 @@
         /**
          * Render form
          */
-        renderForm: function(formData, container) {
-            const formHtml = this.buildFormHtml(formData);
+        renderForm: function(formData, container, options = {}) {
+            const formHtml = this.buildFormHtml(formData, options);
             container.innerHTML = formHtml;
             
             // Initialize form functionality
@@ -133,9 +134,16 @@
         /**
          * Build form HTML
          */
-        buildFormHtml: function(formData) {
-            let html = '<form id="gform_' + formData.id + '" class="gf-embedded-form ' + 
-                       (formData.cssClass || '') + '" novalidate>';
+        buildFormHtml: function(formData, options = {}) {
+            let formClasses = 'gf-embedded-form';
+            if (options.theme) {
+                formClasses += ' theme-' + options.theme;
+            }
+            if (formData.cssClass) {
+                formClasses += ' ' + formData.cssClass;
+            }
+            
+            let html = '<form id="gform_' + formData.id + '" class="' + formClasses + '" novalidate>';
             
             // Add title
             if (formData.title && formData.displayTitle) {
@@ -620,8 +628,13 @@
         /**
          * Load form assets
          */
-        loadAssets: function(formId) {
-            fetch(this.apiUrl + '/assets/' + formId, {
+        loadAssets: function(formId, options = {}) {
+            const url = new URL(this.apiUrl + '/assets/' + formId);
+            if (options.theme) {
+                url.searchParams.append('theme', options.theme);
+            }
+            
+            fetch(url.toString(), {
                 credentials: 'include'
             })
             .then(response => response.json())

@@ -168,7 +168,14 @@ class GF_JS_Embed_Admin {
                             <option value="minimal" <?php selected($settings['theme'], 'minimal'); ?>><?php _e('Minimal', 'gf-js-embed'); ?></option>
                             <option value="rounded" <?php selected($settings['theme'], 'rounded'); ?>><?php _e('Rounded', 'gf-js-embed'); ?></option>
                             <option value="material" <?php selected($settings['theme'], 'material'); ?>><?php _e('Material', 'gf-js-embed'); ?></option>
+                            <option value="dark" <?php selected($settings['theme'], 'dark'); ?>><?php _e('Dark Mode', 'gf-js-embed'); ?></option>
+                            <option value="bootstrap" <?php selected($settings['theme'], 'bootstrap'); ?>><?php _e('Bootstrap-style', 'gf-js-embed'); ?></option>
+                            <option value="tailwind" <?php selected($settings['theme'], 'tailwind'); ?>><?php _e('Tailwind-style', 'gf-js-embed'); ?></option>
+                            <option value="glass" <?php selected($settings['theme'], 'glass'); ?>><?php _e('Glass/Glassmorphism', 'gf-js-embed'); ?></option>
+                            <option value="flat" <?php selected($settings['theme'], 'flat'); ?>><?php _e('Flat Design', 'gf-js-embed'); ?></option>
+                            <option value="corporate" <?php selected($settings['theme'], 'corporate'); ?>><?php _e('Corporate', 'gf-js-embed'); ?></option>
                         </select>
+                        <p class="description"><?php _e('Choose a pre-built theme for your embedded forms. You can further customize with CSS below.', 'gf-js-embed'); ?></p>
                     </td>
                 </tr>
                 

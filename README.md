@@ -89,12 +89,29 @@ Control which domains can embed your forms:
 
 ### Themes
 
-Choose from built-in themes or create your own:
+Choose from 10 pre-built themes or create your own:
 
 - **Default** - Standard Gravity Forms styling
-- **Minimal** - Clean, minimalist design
+- **Dark** - Perfect for dark-themed websites
+- **Bootstrap-style** - Mimics Bootstrap 5 forms (no Bootstrap required)
+- **Tailwind-style** - Matches Tailwind CSS defaults (no Tailwind required)
+- **Glass** - Modern glassmorphism effect
+- **Flat** - Bold, minimalist design
+- **Minimal** - Clean lines with underline inputs
 - **Rounded** - Soft corners and modern look
 - **Material** - Google Material Design inspired
+- **Corporate** - Professional and conservative
+
+Apply themes via admin settings or directly in embed code:
+
+```html
+<!-- Use a specific theme -->
+<div data-gf-form="1" data-gf-theme="dark"></div>
+
+<!-- Multiple forms with different themes -->
+<div data-gf-form="1" data-gf-theme="bootstrap"></div>
+<div data-gf-form="2" data-gf-theme="tailwind"></div>
+```
 
 ### Custom CSS
 

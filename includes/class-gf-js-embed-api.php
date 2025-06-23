@@ -384,6 +384,12 @@ class GF_JS_Embed_API {
         $form_id = $request['id'];
         $settings = GF_JS_Embed_Admin::get_form_settings($form_id);
         
+        // Override theme if provided in request
+        $theme = $request->get_param('theme');
+        if ($theme !== null) {
+            $settings['theme'] = sanitize_text_field($theme);
+        }
+        
         // Get custom CSS
         $css = GF_JS_Embed_Styling::get_form_css($form_id, $settings);
         

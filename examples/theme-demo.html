@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravity Forms JS Embed - Theme Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 40px;
+        }
+        
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .theme-demo {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .theme-demo h2 {
+            margin: 0 0 20px 0;
+            color: #555;
+            font-size: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .theme-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .form-container {
+            min-height: 400px;
+            position: relative;
+        }
+        
+        /* Dark mode background */
+        .dark-bg {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        /* Glass background */
+        .glass-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+        }
+        
+        .theme-selector {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .theme-selector label {
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .theme-selector select {
+            padding: 8px 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin-right: 20px;
+        }
+        
+        .code-example {
+            background: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+        }
+        
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px auto;
+            max-width: 800px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gravity Forms JS Embed - Theme Gallery</h1>
+    
+    <div class="note">
+        <strong>Note:</strong> Replace the script src URLs below with your actual WordPress site URL.
+    </div>
+    
+    <div class="theme-selector">
+        <label for="formId">Form ID:</label>
+        <input type="number" id="formId" value="1" min="1" style="padding: 8px; width: 80px; margin-right: 20px;">
+        
+        <label for="siteUrl">Your Site URL:</label>
+        <input type="text" id="siteUrl" placeholder="https://yoursite.com" style="padding: 8px; width: 250px;">
+        
+        <button onclick="updateDemos()" style="padding: 8px 20px; background: #0073aa; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">Update Demos</button>
+    </div>
+    
+    <div class="theme-grid">
+        <!-- Default Theme -->
+        <div class="theme-demo">
+            <h2>Default Theme</h2>
+            <p class="theme-description">Clean, professional WordPress-style theme</p>
+            <div class="form-container">
+                <div data-gf-form="1" data-gf-theme=""></div>
+            </div>
+            <div class="code-example">
+                &lt;div data-gf-form="1"&gt;&lt;/div&gt;
+            </div>
+        </div>
+        
+        <!-- Dark Mode Theme -->
+        <div class="theme-demo">
+            <h2>Dark Mode Theme</h2>
+            <p class="theme-description">Perfect for dark-themed websites</p>
+            <div class="form-container dark-bg">
+                <div data-gf-form="1" data-gf-theme="dark"></div>
+            </div>
+            <div class="code-example">
+                &lt;div data-gf-form="1" data-gf-theme="dark"&gt;&lt;/div&gt;
+            </div>
+        </div>
+        
+        <!-- Bootstrap-style Theme -->
+        <div class="theme-demo">
+            <h2>Bootstrap-style Theme</h2>
+            <p class="theme-description">Mimics Bootstrap 5 form styling</p>
+            <div class="form-container">
+                <div data-gf-form="1" data-gf-theme="bootstrap"></div>
+            </div>
+            <div class="code-example">
+                &lt;div data-gf-form="1" data-gf-theme="bootstrap"&gt;&lt;/div&gt;
+            </div>
+        </div>
+        
+        <!-- Tailwind-style Theme -->
+        <div class="theme-demo">
+            <h2>Tailwind-style Theme</h2>
+            <p class="theme-description">Matches Tailwind CSS defaults</p>
+            <div class="form-container">
+                <div data-gf-form="1" data-gf-theme="tailwind"></div>
+            </div>
+            <div class="code-example">
+                &lt;div data-gf-form="1" data-gf-theme="tailwind"&gt;&lt;/div&gt;
+            </div>
+        </div>
+        
+        <!-- Glass Theme -->
+        <div class="theme-demo">
+            <h2>Glass/Glassmorphism Theme</h2>
+            <p class="theme-description">Modern frosted glass effect</p>
+            <div class="form-container glass-bg">
+                <div data-gf-form="1" data-gf-theme="glass"></div>
+            </div>
+            <div class="code-example">
+                &lt;div data-gf-form="1" data-gf-theme="glass"&gt;&lt;/div&gt;
+            </div>
+        </div>
+        
+        <!-- Flat Design Theme -->
+        <div class="theme-demo">
+            <h2>Flat Design Theme</h2>
+            <p class="theme-description">Bold, minimalist design with no shadows</p>
+            <div class="form-container">
+                <div data-gf-form="1" data-gf-theme="flat"></div>
+            </div>
+            <div class="code-example">
+                &lt;div data-gf-form="1" data-gf-theme="flat"&gt;&lt;/div&gt;
+            </div>
+        </div>
+        
+        <!-- Minimal Theme -->
+        <div class="theme-demo">
+            <h2>Minimal Theme</h2>
+            <p class="theme-description">Clean lines with underline inputs</p>
+            <div class="form-container">
+                <div data-gf-form="1" data-gf-theme="minimal"></div>
+            </div>
+            <div class="code-example">
+                &lt;div data-gf-form="1" data-gf-theme="minimal"&gt;&lt;/div&gt;
+            </div>
+        </div>
+        
+        <!-- Rounded Theme -->
+        <div class="theme-demo">
+            <h2>Rounded Theme</h2>
+            <p class="theme-description">Soft corners for a modern look</p>
+            <div class="form-container">
+                <div data-gf-form="1" data-gf-theme="rounded"></div>
+            </div>
+            <div class="code-example">
+                &lt;div data-gf-form="1" data-gf-theme="rounded"&gt;&lt;/div&gt;
+            </div>
+        </div>
+        
+        <!-- Material Theme -->
+        <div class="theme-demo">
+            <h2>Material Theme</h2>
+            <p class="theme-description">Google Material Design with floating labels</p>
+            <div class="form-container">
+                <div data-gf-form="1" data-gf-theme="material"></div>
+            </div>
+            <div class="code-example">
+                &lt;div data-gf-form="1" data-gf-theme="material"&gt;&lt;/div&gt;
+            </div>
+        </div>
+        
+        <!-- Corporate Theme -->
+        <div class="theme-demo">
+            <h2>Corporate Theme</h2>
+            <p class="theme-description">Professional and conservative styling</p>
+            <div class="form-container">
+                <div data-gf-form="1" data-gf-theme="corporate"></div>
+            </div>
+            <div class="code-example">
+                &lt;div data-gf-form="1" data-gf-theme="corporate"&gt;&lt;/div&gt;
+            </div>
+        </div>
+    </div>
+    
+    <div style="margin-top: 60px; padding: 40px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h2 style="margin-top: 0;">Implementation Notes</h2>
+        <ul style="line-height: 1.8;">
+            <li><strong>No dependencies required:</strong> All themes use pure CSS without requiring Bootstrap, Tailwind, or other frameworks</li>
+            <li><strong>Responsive:</strong> All themes are mobile-friendly and adapt to different screen sizes</li>
+            <li><strong>Customizable:</strong> Use custom CSS to further modify any theme</li>
+            <li><strong>Performance:</strong> Themes add minimal overhead to form loading</li>
+            <li><strong>Accessibility:</strong> All themes maintain proper contrast ratios and keyboard navigation</li>
+        </ul>
+        
+        <h3>Advanced Usage</h3>
+        <pre class="code-example">// With API key
+&lt;div data-gf-form="1" data-gf-theme="dark" data-gf-api-key="your-api-key"&gt;&lt;/div&gt;
+
+// Multiple forms with different themes
+&lt;div data-gf-form="1" data-gf-theme="bootstrap"&gt;&lt;/div&gt;
+&lt;div data-gf-form="2" data-gf-theme="tailwind"&gt;&lt;/div&gt;
+
+// With custom container styling
+&lt;div style="max-width: 600px; margin: 0 auto;"&gt;
+    &lt;div data-gf-form="1" data-gf-theme="glass"&gt;&lt;/div&gt;
+&lt;/div&gt;</pre>
+    </div>
+    
+    <!-- Load the embed script - Update this URL -->
+    <script id="gf-embed-script" src="https://yoursite.com/gf-js-embed/v1/embed.js"></script>
+    
+    <script>
+        function updateDemos() {
+            const formId = document.getElementById('formId').value;
+            const siteUrl = document.getElementById('siteUrl').value;
+            
+            if (!siteUrl) {
+                alert('Please enter your WordPress site URL');
+                return;
+            }
+            
+            // Update all form containers
+            document.querySelectorAll('[data-gf-form]').forEach(el => {
+                el.setAttribute('data-gf-form', formId);
+            });
+            
+            // Update script src
+            const script = document.getElementById('gf-embed-script');
+            const newScript = document.createElement('script');
+            newScript.src = siteUrl.replace(/\/$/, '') + '/gf-js-embed/v1/embed.js';
+            newScript.id = 'gf-embed-script';
+            
+            script.parentNode.replaceChild(newScript, script);
+            
+            // Update code examples
+            document.querySelectorAll('.code-example').forEach(el => {
+                if (el.textContent.includes('data-gf-form=')) {
+                    el.innerHTML = el.innerHTML.replace(/data-gf-form="\d+"/g, `data-gf-form="${formId}"`);
+                }
+            });
+        }
+        
+        // Auto-detect URL from referrer or use placeholder
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlInput = document.getElementById('siteUrl');
+            if (document.referrer && document.referrer.includes('wp-admin')) {
+                const referrerUrl = new URL(document.referrer);
+                urlInput.value = referrerUrl.origin;
+            }
+        });
+    </script>
+</body>
+</html>
