@@ -58,7 +58,12 @@ class GF_JS_Embed_Admin {
     /**
      * Form settings page
      */
-    public function form_settings_page($form) {
+    public function form_settings_page() {
+        // Get the id of the page view(form ID) and the $form object
+        $form_id = rgget('id');
+
+        $form = GFAPI::get_form( $form_id );
+
         // Check if GFFormSettings class exists
         if (!class_exists('GFFormSettings')) {
             ?>
