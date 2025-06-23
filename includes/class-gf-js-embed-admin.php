@@ -445,7 +445,7 @@ class GF_JS_Embed_Admin {
                 <div class="notice notice-warning">
                     <p>
                         <?php _e('JavaScript embedding is not enabled for this form.', 'gf-js-embed'); ?>
-                        <a href="<?php echo admin_url('admin.php?page=gf_form_settings&subview=gf_js_embed&id=' . $form_id); ?>">
+                        <a href="<?php echo admin_url('admin.php?page=gf_edit_forms&subview=gf_js_embed&id=' . $form_id); ?>&view=settings">
                             <?php _e('Enable it now', 'gf-js-embed'); ?>
                         </a>
                     </p>
@@ -601,7 +601,7 @@ export default {
                         </tr>
                     </table>
                     <p>
-                        <a href="<?php echo admin_url('admin.php?page=gf_form_settings&subview=gf_js_embed&id=' . $form_id); ?>" class="button">
+                        <a href="<?php echo admin_url('admin.php?page=gf_edit_forms&subview=gf_js_embed&id=' . $form_id); ?>&view=settings" class="button">
                             <?php _e('Configure Settings', 'gf-js-embed'); ?>
                         </a>
                     </p>
