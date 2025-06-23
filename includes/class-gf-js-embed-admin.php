@@ -58,7 +58,12 @@ class GF_JS_Embed_Admin {
     /**
      * Form settings page
      */
-    public function form_settings_page($form) {
+    public function form_settings_page() {
+        // Get the id of the page view(form ID) and the $form object
+        $form_id = rgget('id');
+
+        $form = GFAPI::get_form( $form_id );
+
         // Check if GFFormSettings class exists
         if (!class_exists('GFFormSettings')) {
             ?>
@@ -74,7 +79,8 @@ class GF_JS_Embed_Admin {
             // Check if the dynamic save hook was already called by checking a flag
             if (!defined('GF_JS_EMBED_SETTINGS_SAVED')) {
                 $this->save_form_settings([], $form);
-                define('GF_JS_EMBED_SETTINGS_SAVED', true);
+                // Commented this out since it gives off duplicate constant on update/save
+                // define('GF_JS_EMBED_SETTINGS_SAVED', true);
             }
         }
         
@@ -439,7 +445,7 @@ class GF_JS_Embed_Admin {
                 <div class="notice notice-warning">
                     <p>
                         <?php _e('JavaScript embedding is not enabled for this form.', 'gf-js-embed'); ?>
-                        <a href="<?php echo admin_url('admin.php?page=gf_form_settings&subview=gf_js_embed&id=' . $form_id); ?>">
+                        <a href="<?php echo admin_url('admin.php?page=gf_edit_forms&subview=gf_js_embed&id=' . $form_id); ?>&view=settings">
                             <?php _e('Enable it now', 'gf-js-embed'); ?>
                         </a>
                     </p>
@@ -595,7 +601,7 @@ export default {
                         </tr>
                     </table>
                     <p>
-                        <a href="<?php echo admin_url('admin.php?page=gf_form_settings&subview=gf_js_embed&id=' . $form_id); ?>" class="button">
+                        <a href="<?php echo admin_url('admin.php?page=gf_edit_forms&subview=gf_js_embed&id=' . $form_id); ?>&view=settings" class="button">
                             <?php _e('Configure Settings', 'gf-js-embed'); ?>
                         </a>
                     </p>
