@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2025-06-23
+
+### Fixed
+- Added missing GFFormSettings::page_header() and page_footer() for proper Gravity Forms UI consistency (#18)
+- Form settings page now properly integrates with Gravity Forms navigation and styling
+- Removed custom heading that was redundant with GF page header
+
+### Improved
+- Better error handling with proper page wrapper even on error conditions
+- Form settings page now matches the look and feel of native Gravity Forms pages
+
 ## [0.2.0] - 2025-06-22
 
 ### Added
@@ -122,6 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Payment fields not yet fully supported
 - Limited support for third-party Gravity Forms add-ons
 
+[0.2.1]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.3...v0.1.4

@@ -56,6 +56,19 @@ class GF_JS_Embed_Admin {
      * Form settings page
      */
     public function form_settings_page($form) {
+        // Check if GFFormSettings class exists
+        if (!class_exists('GFFormSettings')) {
+            ?>
+            <div class="notice notice-error">
+                <p><?php _e('Gravity Forms settings class not available.', 'gf-js-embed'); ?></p>
+            </div>
+            <?php
+            return;
+        }
+        
+        // Output page header
+        GFFormSettings::page_header();
+        
         // Ensure Gravity Forms is available
         if (!class_exists('GFCommon')) {
             ?>
@@ -63,6 +76,7 @@ class GF_JS_Embed_Admin {
                 <p><?php _e('Gravity Forms is not available.', 'gf-js-embed'); ?></p>
             </div>
             <?php
+            GFFormSettings::page_footer();
             return;
         }
         
@@ -73,6 +87,7 @@ class GF_JS_Embed_Admin {
                 <p><?php _e('You do not have permission to access this page.', 'gf-js-embed'); ?></p>
             </div>
             <?php
+            GFFormSettings::page_footer();
             return;
         }
         
@@ -83,14 +98,12 @@ class GF_JS_Embed_Admin {
                 <p><?php _e('Invalid form specified.', 'gf-js-embed'); ?></p>
             </div>
             <?php
+            GFFormSettings::page_footer();
             return;
         }
         
         $settings = self::get_form_settings($form['id']);
         ?>
-        <h3>
-            <span><i class="fa fa-code"></i> <?php _e('JavaScript Embed Settings', 'gf-js-embed'); ?></span>
-        </h3>
         
         <form method="post">
             <?php wp_nonce_field('gf_js_embed_save_settings', 'gf_js_embed_nonce'); ?>
@@ -267,6 +280,9 @@ class GF_JS_Embed_Admin {
             }
         </style>
         <?php
+        
+        // Output page footer
+        GFFormSettings::page_footer();
     }
     
     /**
