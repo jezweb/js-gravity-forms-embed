@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2025-06-23
+
+### Fixed
+- Enhanced form settings save mechanism for better compatibility (#19)
+- Added fallback save methods to ensure settings persist across all Gravity Forms versions
+- Implemented duplicate save prevention using flags
+
+### Improved
+- Now hooks into both dynamic and documented save points for maximum compatibility
+- Added support for `gform_pre_form_settings_save` as fallback
+- Settings save in form display page if primary save hook fails
+- Better future-proofing against Gravity Forms updates
+
+### Technical
+- Uses three-tier save approach: dynamic hook, documented hook, and page display fallback
+- Prevents duplicate saves with `GF_JS_EMBED_SETTINGS_SAVED` constant
+
 ## [0.2.1] - 2025-06-23
 
 ### Fixed
@@ -133,6 +150,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Payment fields not yet fully supported
 - Limited support for third-party Gravity Forms add-ons
 
+[0.2.2]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.5...v0.2.0
 [0.1.5]: https://github.com/jezweb/js-gravity-forms-embed/compare/v0.1.4...v0.1.5

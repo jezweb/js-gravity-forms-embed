@@ -30,7 +30,10 @@ class GF_JS_Embed_Admin {
         // Add form settings
         add_action('gform_form_settings_menu', [$this, 'add_form_settings_menu'], 10, 2);
         add_action('gform_form_settings_page_gf_js_embed', [$this, 'form_settings_page']);
-        add_filter('gform_form_settings_save_gf_js_embed', [$this, 'save_form_settings'], 10, 2);
+        
+        // Hook into multiple save points for compatibility
+        add_filter('gform_form_settings_save_gf_js_embed', [$this, 'save_form_settings'], 10, 2); // Dynamic hook
+        add_filter('gform_pre_form_settings_save', [$this, 'save_form_settings_fallback']); // Documented hook
         
         // Add scripts and styles
         add_action('admin_enqueue_scripts', [$this, 'enqueue_admin_scripts']);
@@ -64,6 +67,15 @@ class GF_JS_Embed_Admin {
             </div>
             <?php
             return;
+        }
+        
+        // Handle form submission if save hook doesn't fire
+        if (isset($_POST['gf_js_embed_nonce']) && wp_verify_nonce($_POST['gf_js_embed_nonce'], 'gf_js_embed_save_settings')) {
+            // Check if the dynamic save hook was already called by checking a flag
+            if (!defined('GF_JS_EMBED_SETTINGS_SAVED')) {
+                $this->save_form_settings([], $form);
+                define('GF_JS_EMBED_SETTINGS_SAVED', true);
+            }
         }
         
         // Output page header
@@ -289,6 +301,11 @@ class GF_JS_Embed_Admin {
      * Save form settings
      */
     public function save_form_settings($settings, $form) {
+        // Set flag to prevent duplicate saves
+        if (!defined('GF_JS_EMBED_SETTINGS_SAVED')) {
+            define('GF_JS_EMBED_SETTINGS_SAVED', true);
+        }
+        
         if (!isset($_POST['gf_js_embed_nonce']) || !wp_verify_nonce($_POST['gf_js_embed_nonce'], 'gf_js_embed_save_settings')) {
             return $settings;
         }
@@ -331,6 +348,23 @@ class GF_JS_Embed_Admin {
         GFCommon::add_message(__('Settings saved successfully.', 'gf-js-embed'));
         
         return $settings;
+    }
+    
+    /**
+     * Fallback save method using documented hook
+     */
+    public function save_form_settings_fallback($form) {
+        // Only process if this is our settings page
+        if (!isset($_POST['gf_js_embed_nonce']) || !wp_verify_nonce($_POST['gf_js_embed_nonce'], 'gf_js_embed_save_settings')) {
+            return $form;
+        }
+        
+        // Check if already saved to prevent duplicate processing
+        if (!defined('GF_JS_EMBED_SETTINGS_SAVED')) {
+            $this->save_form_settings([], $form);
+        }
+        
+        return $form;
     }
     
     /**
