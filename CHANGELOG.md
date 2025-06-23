@@ -8,7 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.4.0] - 2025-06-23
 
-### Added\n- \n\n### Changed\n- \n\n### Fixed\n- 
+### Added
+- 6 new professional themes: Dark Mode, Bootstrap-style, Tailwind-style, Glass/Glassmorphism, Flat Design, Corporate
+- Theme selection support via `data-gf-theme` attribute in embed code
+- Theme demo page at `/examples/theme-demo.html` for testing all themes
+- Automated release process with `release.sh` script
+- Comprehensive testing dashboard for plugin validation
+- Developer hooks documentation
+- Troubleshooting guide
+
+### Changed
+- Enhanced README with comprehensive feature documentation
+- Updated admin interface to include new theme options
+- Improved JavaScript SDK to support theme parameter
+- Enhanced API to handle theme overrides
+
+### Fixed
+- Theme CSS properly scoped to prevent conflicts
+- SDK now correctly passes theme parameter to API
 
 ## [0.3.1] - 2025-06-23
 
