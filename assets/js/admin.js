@@ -138,6 +138,74 @@
             $themeSelect.on('change', updateThemeInfo);
             updateThemeInfo();
         }
+        
+        // Lazy loading placeholder type toggle
+        const $placeholderType = $('#js_embed_lazy_placeholder_type');
+        const $customContent = $('#custom_placeholder_content');
+        
+        if ($placeholderType.length && $customContent.length) {
+            function toggleCustomContent() {
+                if ($placeholderType.val() === 'custom') {
+                    $customContent.slideDown(200);
+                } else {
+                    $customContent.slideUp(200);
+                }
+            }
+            
+            $placeholderType.on('change', toggleCustomContent);
+            toggleCustomContent(); // Initialize on page load
+        }
+        
+        // Lazy loading threshold helper
+        const $lazyThreshold = $('#js_embed_lazy_threshold');
+        if ($lazyThreshold.length) {
+            const $thresholdDisplay = $('<span style="margin-left: 10px; font-weight: bold;"></span>');
+            $lazyThreshold.after($thresholdDisplay);
+            
+            function updateThresholdDisplay() {
+                const value = parseFloat($lazyThreshold.val());
+                let description = '';
+                
+                if (value === 0) {
+                    description = 'Load immediately when any part becomes visible';
+                } else if (value <= 0.25) {
+                    description = 'Load when 25% visible (very early)';
+                } else if (value <= 0.5) {
+                    description = 'Load when 50% visible (balanced)';
+                } else if (value <= 0.75) {
+                    description = 'Load when 75% visible (conservative)';
+                } else {
+                    description = 'Load when fully visible (maximum delay)';
+                }
+                
+                $thresholdDisplay.text(description);
+            }
+            
+            $lazyThreshold.on('input change', updateThresholdDisplay);
+            updateThresholdDisplay();
+        }
+        
+        // Lazy loading info tooltips
+        const placeholderDescriptions = {
+            'minimal': 'Simple spinner with loading message - fastest loading',
+            'skeleton': 'Shows form structure outline - gives users preview of content',
+            'spinner': 'Large centered spinner - clear loading indication',
+            'button': 'Click-to-load button - user-controlled loading',
+            'custom': 'Your own HTML content - full customization'
+        };
+        
+        if ($placeholderType.length) {
+            const $placeholderInfo = $('<p class="description" style="margin-top: 5px;"></p>');
+            $placeholderType.after($placeholderInfo);
+            
+            function updatePlaceholderInfo() {
+                const type = $placeholderType.val();
+                $placeholderInfo.text(placeholderDescriptions[type] || '');
+            }
+            
+            $placeholderType.on('change', updatePlaceholderInfo);
+            updatePlaceholderInfo();
+        }
     });
     
 })(jQuery);

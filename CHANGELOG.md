@@ -6,28 +6,92 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [0.5.0] - 2025-06-24
+## [0.5.0] - 2024-12-24
 
 ### Added
+
+#### Visual Theme Customizer System
+- **Complete Theme Management Interface** - New admin page for visual theme customization
+- **50+ CSS Variables** - Comprehensive theming system with colors, typography, spacing, and design controls
+- **Live Preview System** - Real-time preview of theme changes in the admin interface
+- **Predefined Themes** - 10 built-in themes (minimal, rounded, material, dark, bootstrap, tailwind, glass, flat, corporate)
+- **Custom Theme Creation** - Build and save unlimited custom themes
+- **Theme Library Management** - Organize themes with categories, search, and filtering
+- **Theme Import/Export** - Batch export/import themes as JSON or ZIP files
+- **Theme Sharing** - Generate temporary sharing URLs for themes
+- **Theme Validation** - Comprehensive validation with security checks and accessibility warnings
+- **Theme Versioning** - Track theme changes and duplicate themes for variations
+
+#### Performance Optimization
+- **Lazy Loading System** - Forms only load when visible in viewport using Intersection Observer API
+- **Multiple Placeholder Types** - Choose from minimal, skeleton, spinner, button, or custom HTML placeholders
+- **Configurable Loading Thresholds** - Control when forms load (0.0 = immediate, 1.0 = fully visible)
+- **Critical CSS** - Prevent layout shift with inline critical styles
+- **Performance Caching** - Object caching for themes and form data
+- **CSS Minification** - Automatic CSS compression for production
+
+#### Enhanced Security & Features
 - **Rate Limiting System** - Configurable request throttling with database tracking and exponential backoff
 - **JavaScript Event System** - Global event bus for form lifecycle management and extensibility  
 - **CSRF Protection** - Session-based token validation for form submissions
 - **Multi-Page Forms Support** - Progress tracking, auto-save, and navigation between form pages
 - **Conditional Logic Engine** - Dynamic field visibility and requirements based on user input
-- Comprehensive test pages for all new features in `/tests/` directory
-- Admin interfaces for configuring rate limits, CSRF settings, and conditional logic rules
-- Database schema updates for analytics tracking and session management
+- **Comprehensive Hooks System** - 15+ new action and filter hooks for extensibility
+- **Enhanced Domain Validation** - Improved CORS and domain allowlist management
+- **Security Event Logging** - Detailed logging of security violations and events
+- **Multi-level Security** - Low, medium, and high security modes
+- **Bot Detection** - Advanced automated bot detection and blocking
+
+#### Developer Experience
+- **Hooks Documentation** - Comprehensive documentation of all available hooks and filters
+- **API Extensions** - Enhanced REST API with proper filtering and extensibility
+- **Theme Development Tools** - Tools for creating and debugging custom themes
+- **Performance Metrics** - Built-in performance monitoring and reporting
+- **Security Scanning** - Automated security scans for form submissions
+
+#### Admin Interface Improvements
+- **Enhanced Form Settings** - Expanded settings panel with organized sections including performance settings
+- **Visual Controls** - Color pickers, sliders, and intuitive form controls
+- **Help System** - Built-in help and documentation within the admin interface
+- **Real-time Feedback** - Immediate validation and feedback for settings
+- **Improved UX** - Better organization, tooltips, and user guidance
 
 ### Changed
+- **Converted to CSS Variables** - Migrated from hardcoded CSS to flexible CSS custom properties
+- **Improved API Structure** - More consistent and extensible API endpoints
+- **Enhanced Error Handling** - Better error messages and recovery mechanisms
+- **Optimized Database Queries** - Improved performance for analytics and form data
+- **Updated Admin Styling** - Modern, responsive admin interface design
 - Updated README.md to accurately reflect implemented vs promised features
 - Enhanced main plugin class to load new feature modules
 - Improved JavaScript SDK with event system integration
-- Updated version number to 0.4.0 throughout codebase
 
 ### Fixed
+- **Hook Implementation** - Fixed missing hooks that were documented but not implemented
+- **Form Validation** - Improved client-side and server-side validation consistency
+- **Performance Issues** - Resolved bottlenecks in form loading and rendering
+- **Security Vulnerabilities** - Enhanced protection against common attack vectors
+- **Browser Compatibility** - Improved compatibility with older browsers and mobile devices
 - Removed overpromised features from documentation (honeypot fields, bot detection, etc.)
 - Corrected API endpoint documentation with proper WordPress REST API paths
 - Fixed JavaScript SDK examples to show actual implemented functionality
+
+### Technical Details
+- **New Classes Added:**
+  - `GF_JS_Embed_Theme_Manager` - Core theme management
+  - `GF_JS_Embed_CSS_Variables` - CSS variable definitions and validation
+  - `GF_JS_Embed_Theme_Customizer_Admin` - Admin interface for theme customization
+  - `GF_JS_Embed_Lazy_Loading` - Lazy loading implementation
+  - `GF_JS_Embed_Rate_Limiter` - Request rate limiting
+  - `GF_JS_Embed_Performance` - Performance optimization utilities
+
+- **Hooks Added:**
+  - `gf_js_embed_theme_variables` - Filter CSS variables before application
+  - `gf_js_embed_predefined_themes` - Filter predefined theme list
+  - `gf_js_embed_theme_applied` - Action when theme is applied to form
+  - `gf_js_embed_security_violation` - Action for security violations
+  - `gf_js_embed_api_response` - Filter API responses
+  - And 10+ additional hooks for extensibility
 
 ## [0.4.0] - 2025-06-23
 

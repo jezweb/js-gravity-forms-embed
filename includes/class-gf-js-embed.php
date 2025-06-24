@@ -49,6 +49,7 @@ class GF_JavaScript_Embed {
         GF_JS_Embed_CSRF::get_instance();
         GF_JS_Embed_MultiPage::get_instance();
         GF_JS_Embed_Conditional_Logic::get_instance();
+        GF_JS_Embed_Lazy_Loading::get_instance();
     }
     
     /**
@@ -75,6 +76,9 @@ class GF_JavaScript_Embed {
         // Add cron job handlers
         add_action('gf_js_embed_analytics_cleanup', [$this, 'cleanup_analytics_data']);
         add_action('gf_js_embed_analytics_aggregate', [$this, 'aggregate_analytics_data']);
+        
+        // Register shortcode
+        add_shortcode('gf_js_embed', [$this, 'render_shortcode']);
     }
     
     /**
@@ -223,5 +227,155 @@ class GF_JavaScript_Embed {
             'total_submissions_30d' => $total_submissions,
             'last_updated' => time()
         ], HOUR_IN_SECONDS);
+    }
+    
+    /**
+     * Render the embed shortcode
+     */
+    public function render_shortcode($atts) {
+        // Parse shortcode attributes
+        $atts = shortcode_atts([
+            'id' => '',
+            'theme' => '',
+            'title' => 'true',
+            'description' => 'true',
+            'ajax' => 'true',
+            'tabindex' => '0',
+            'field_values' => '',
+            'use_current_page_as_redirect' => 'false',
+            'api_key' => '',
+            'container_id' => '',
+            'class' => ''
+        ], $atts, 'gf_js_embed');
+        
+        // Validate form ID
+        if (empty($atts['id'])) {
+            return '<p>' . __('Please specify a form ID.', 'gf-js-embed') . '</p>';
+        }
+        
+        // Generate unique container ID if not provided
+        if (empty($atts['container_id'])) {
+            $atts['container_id'] = 'gf-embed-' . $atts['id'] . '-' . wp_rand(1000, 9999);
+        }
+        
+        // Get API settings
+        $settings = get_option('gf_js_embed_settings', []);
+        $api_key = !empty($atts['api_key']) ? $atts['api_key'] : ($settings['api_keys'][0]['key'] ?? '');
+        
+        if (empty($api_key)) {
+            return '<p>' . __('No API key configured for form embedding.', 'gf-js-embed') . '</p>';
+        }
+        
+        // Get theme CSS if specified
+        $theme_css = '';
+        if (!empty($atts['theme'])) {
+            $performance = GF_JS_Embed_Performance::get_instance();
+            $theme_css = $performance->get_inline_theme_css($atts['theme']);
+        }
+        
+        // Build embed configuration
+        $config = [
+            'formId' => intval($atts['id']),
+            'targetId' => $atts['container_id'],
+            'apiKey' => $api_key,
+            'apiUrl' => rest_url('gf-js-embed/v1/'),
+            'ajax' => $atts['ajax'] === 'true',
+            'title' => $atts['title'] === 'true',
+            'description' => $atts['description'] === 'true',
+            'tabindex' => intval($atts['tabindex']),
+            'useCurrentPageAsRedirect' => $atts['use_current_page_as_redirect'] === 'true'
+        ];
+        
+        // Add field values if provided
+        if (!empty($atts['field_values'])) {
+            parse_str($atts['field_values'], $field_values);
+            $config['fieldValues'] = $field_values;
+        }
+        
+        // Add theme if specified
+        if (!empty($atts['theme'])) {
+            $config['theme'] = $atts['theme'];
+            
+            /**
+             * Fires when a theme is applied to a form
+             * 
+             * @since 2.0.0
+             * 
+             * @param string $theme_name Name of the applied theme
+             * @param int $form_id Gravity Forms form ID
+             */
+            do_action('gf_js_embed_theme_applied', $atts['theme'], intval($atts['id']));
+        }
+        
+        // Generate output
+        $output = sprintf(
+            '<div id="%s" class="gf-js-embed-container loading %s"></div>',
+            esc_attr($atts['container_id']),
+            esc_attr($atts['class'])
+        );
+        
+        // Add critical CSS to prevent layout shift
+        $performance = GF_JS_Embed_Performance::get_instance();
+        $critical_css = $performance->get_critical_css();
+        $output .= sprintf('<style id="%s-critical">%s</style>', esc_attr($atts['container_id']), $critical_css);
+        
+        // Add theme CSS if available
+        if (!empty($theme_css)) {
+            $output .= sprintf(
+                '<style id="%s-theme">%s</style>',
+                esc_attr($atts['container_id']),
+                $theme_css
+            );
+        }
+        
+        // Add initialization script
+        $output .= sprintf(
+            '<script>
+                (function() {
+                    // Load Gravity Forms Embed SDK if not already loaded
+                    if (typeof GravityFormsEmbed === "undefined") {
+                        var script = document.createElement("script");
+                        script.src = "%s";
+                        script.async = true;
+                        script.onload = function() {
+                            initializeForm();
+                        };
+                        document.head.appendChild(script);
+                    } else {
+                        initializeForm();
+                    }
+                    
+                    function initializeForm() {
+                        var config = %s;
+                        var embed = new GravityFormsEmbed(config);
+                        embed.render();
+                        
+                        // Remove loading class
+                        var container = document.getElementById(config.targetId);
+                        if (container) {
+                            container.classList.remove('loading');
+                        }
+                    }
+                })();
+            </script>',
+            esc_url(home_url('/gf-js-embed/v1/embed.js')),
+            wp_json_encode($config)
+        );
+        
+        /**
+         * Filters the shortcode output before rendering
+         * 
+         * @since 2.1.0
+         * 
+         * @param string $output The generated shortcode output
+         * @param array $atts Shortcode attributes
+         * @param array $settings Form settings (if available)
+         */
+        $settings = [];
+        if (!empty($atts['id'])) {
+            $settings = GF_JS_Embed_Admin::get_form_settings($atts['id']);
+        }
+        
+        return apply_filters('gf_js_embed_shortcode_output', $output, $atts, $settings);
     }
 }

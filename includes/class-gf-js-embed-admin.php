@@ -287,6 +287,42 @@ class GF_JS_Embed_Admin {
                         <p class="description"><?php _e('When an API key is generated, it becomes required for all embed requests to this form.', 'gf-js-embed'); ?></p>
                     </td>
                 </tr>
+                
+                <tr>
+                    <th><label><?php _e('Performance Settings', 'gf-js-embed'); ?></label></th>
+                    <td>
+                        <input type="checkbox" name="js_embed_disable_lazy_loading" id="js_embed_disable_lazy_loading" 
+                               value="1" <?php checked($settings['disable_lazy_loading'], true); ?>>
+                        <label for="js_embed_disable_lazy_loading"><?php _e('Disable lazy loading for this form', 'gf-js-embed'); ?></label>
+                        <br><br>
+                        
+                        <label for="js_embed_lazy_threshold"><?php _e('Lazy loading threshold:', 'gf-js-embed'); ?></label><br>
+                        <input type="number" name="js_embed_lazy_threshold" id="js_embed_lazy_threshold" 
+                               value="<?php echo esc_attr($settings['lazy_threshold'] ?? 0.5); ?>" 
+                               min="0" max="1" step="0.1" style="width: 80px;" />
+                        <span><?php _e('(0.0 = load immediately when visible, 1.0 = load when fully visible)', 'gf-js-embed'); ?></span>
+                        <br><br>
+                        
+                        <label for="js_embed_lazy_placeholder_type"><?php _e('Placeholder type:', 'gf-js-embed'); ?></label><br>
+                        <select name="js_embed_lazy_placeholder_type" id="js_embed_lazy_placeholder_type">
+                            <option value="minimal" <?php selected($settings['lazy_placeholder_type'] ?? 'minimal', 'minimal'); ?>><?php _e('Minimal (spinner)', 'gf-js-embed'); ?></option>
+                            <option value="skeleton" <?php selected($settings['lazy_placeholder_type'] ?? 'minimal', 'skeleton'); ?>><?php _e('Skeleton (form outline)', 'gf-js-embed'); ?></option>
+                            <option value="spinner" <?php selected($settings['lazy_placeholder_type'] ?? 'minimal', 'spinner'); ?>><?php _e('Spinner (large)', 'gf-js-embed'); ?></option>
+                            <option value="button" <?php selected($settings['lazy_placeholder_type'] ?? 'minimal', 'button'); ?>><?php _e('Button (click to load)', 'gf-js-embed'); ?></option>
+                            <option value="custom" <?php selected($settings['lazy_placeholder_type'] ?? 'minimal', 'custom'); ?>><?php _e('Custom HTML', 'gf-js-embed'); ?></option>
+                        </select>
+                        <br><br>
+                        
+                        <div id="custom_placeholder_content" style="<?php echo ($settings['lazy_placeholder_type'] ?? 'minimal') !== 'custom' ? 'display: none;' : ''; ?>">
+                            <label for="js_embed_lazy_placeholder_content"><?php _e('Custom placeholder HTML:', 'gf-js-embed'); ?></label><br>
+                            <textarea name="js_embed_lazy_placeholder_content" id="js_embed_lazy_placeholder_content" 
+                                      rows="4" cols="50" class="large-text"><?php echo esc_textarea($settings['lazy_placeholder_content'] ?? ''); ?></textarea>
+                            <p class="description"><?php _e('HTML content to display while the form is loading. Basic HTML tags are allowed.', 'gf-js-embed'); ?></p>
+                        </div>
+                        
+                        <p class="description"><?php _e('Lazy loading improves page performance by only loading forms when they become visible. The threshold controls how much of the form area must be visible before loading begins.', 'gf-js-embed'); ?></p>
+                    </td>
+                </tr>
             </table>
             
             <?php submit_button(__('Save Settings', 'gf-js-embed')); ?>
@@ -303,6 +339,51 @@ class GF_JS_Embed_Admin {
             <textarea readonly class="large-text code" rows="3" onclick="this.select();"><!-- Gravity Forms JavaScript Embed -->
 <div id="gf-form-<?php echo $form['id']; ?>"></div>
 <script src="<?php echo home_url('/gf-js-embed/v1/embed.js?form=' . $form['id']); ?>"></script></textarea>
+        </div>
+        
+        <div class="gf-embed-code-section">
+            <h4><?php _e('WordPress Shortcode', 'gf-js-embed'); ?></h4>
+            <div class="gf-shortcode-builder">
+                <p><?php _e('Select theme (optional):', 'gf-js-embed'); ?></p>
+                <select id="gf-theme-selector" onchange="updateShortcode()">
+                    <option value=""><?php _e('Default Theme', 'gf-js-embed'); ?></option>
+                    <?php
+                    $theme_manager = GF_JS_Embed_Theme_Manager::get_instance();
+                    $predefined_themes = $theme_manager->get_predefined_themes();
+                    $custom_themes = $theme_manager->get_custom_themes();
+                    
+                    // Predefined themes
+                    foreach ($predefined_themes as $category_id => $category) {
+                        echo '<optgroup label="' . esc_attr($category['category_label']) . '">';
+                        foreach ($category['themes'] as $theme_id => $theme) {
+                            echo '<option value="' . esc_attr($theme_id) . '">' . esc_html($theme['name']) . '</option>';
+                        }
+                        echo '</optgroup>';
+                    }
+                    
+                    // Custom themes
+                    if (!empty($custom_themes)) {
+                        echo '<optgroup label="' . __('Custom Themes', 'gf-js-embed') . '">';
+                        foreach ($custom_themes as $theme_name => $theme) {
+                            echo '<option value="' . esc_attr($theme_name) . '">' . esc_html($theme['name']) . '</option>';
+                        }
+                        echo '</optgroup>';
+                    }
+                    ?>
+                </select>
+                <textarea id="gf-shortcode-output" readonly class="large-text code" rows="2" onclick="this.select();">[gf_js_embed id="<?php echo $form['id']; ?>"]</textarea>
+            </div>
+            <script>
+                function updateShortcode() {
+                    var theme = document.getElementById('gf-theme-selector').value;
+                    var shortcode = '[gf_js_embed id="<?php echo $form['id']; ?>"';
+                    if (theme) {
+                        shortcode += ' theme="' + theme + '"';
+                    }
+                    shortcode += ']';
+                    document.getElementById('gf-shortcode-output').value = shortcode;
+                }
+            </script>
         </div>
         
         <div class="gf-embed-code-section">
@@ -376,7 +457,11 @@ class GF_JS_Embed_Admin {
             'csrf_enabled' => !empty($_POST['js_embed_csrf']),
             'spam_detection' => !empty($_POST['js_embed_spam_detection']),
             'bot_detection' => !empty($_POST['js_embed_bot_detection']),
-            'security_level' => sanitize_text_field($_POST['js_embed_security_level'] ?? 'medium')
+            'security_level' => sanitize_text_field($_POST['js_embed_security_level'] ?? 'medium'),
+            'disable_lazy_loading' => !empty($_POST['js_embed_disable_lazy_loading']),
+            'lazy_threshold' => max(0, min(1, floatval($_POST['js_embed_lazy_threshold'] ?? 0.5))),
+            'lazy_placeholder_type' => sanitize_text_field($_POST['js_embed_lazy_placeholder_type'] ?? 'minimal'),
+            'lazy_placeholder_content' => wp_kses_post($_POST['js_embed_lazy_placeholder_content'] ?? '')
         ];
         
         // Get existing settings to preserve API key

@@ -22,6 +22,11 @@ class GF_JS_Embed_Styling {
             $css .= self::get_theme_css($settings['theme']);
         }
         
+        // Add custom theme variables if this is a custom theme
+        if (!empty($settings['theme']) && self::is_custom_theme($settings['theme'])) {
+            $css .= self::get_custom_theme_css($settings['theme']);
+        }
+        
         // Add custom CSS
         if (!empty($settings['custom_css'])) {
             // Scope custom CSS to the form container
@@ -39,15 +44,142 @@ class GF_JS_Embed_Styling {
     }
     
     /**
+     * Check if theme is a valid theme (custom or predefined)
+     */
+    private static function is_custom_theme($theme_name) {
+        $theme_manager = GF_JS_Embed_Theme_Manager::get_instance();
+        
+        // Check custom themes
+        $custom_themes = $theme_manager->get_custom_themes();
+        if (isset($custom_themes[$theme_name])) {
+            return true;
+        }
+        
+        // Check predefined themes
+        $predefined_themes = $theme_manager->get_predefined_themes();
+        foreach ($predefined_themes as $category => $category_data) {
+            if (isset($category_data['themes'][$theme_name])) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Get custom theme CSS
+     */
+    private static function get_custom_theme_css($theme_name) {
+        $theme_manager = GF_JS_Embed_Theme_Manager::get_instance();
+        $css_variables = GF_JS_Embed_CSS_Variables::get_instance();
+        
+        // Check custom themes first
+        $custom_themes = $theme_manager->get_custom_themes();
+        if (isset($custom_themes[$theme_name])) {
+            $theme_data = $custom_themes[$theme_name];
+            return $css_variables->generate_css_variables($theme_data['variables']);
+        }
+        
+        // Check predefined themes
+        $predefined_themes = $theme_manager->get_predefined_themes();
+        foreach ($predefined_themes as $category => $category_data) {
+            if (isset($category_data['themes'][$theme_name])) {
+                $theme_variables = array_merge(
+                    $css_variables->get_default_variables(),
+                    $category_data['themes'][$theme_name]['variables']
+                );
+                return $css_variables->generate_css_variables($theme_variables);
+            }
+        }
+        
+        return '';
+    }
+    
+    /**
      * Get base CSS for all forms
      */
     private static function get_base_css() {
         return '
+/* CSS Custom Properties (Variables) for Theme System */
+:root {
+    /* Colors - Primary */
+    --gf-primary-color: #0073aa;
+    --gf-primary-hover: #005a87;
+    --gf-primary-focus: #004c75;
+    
+    /* Colors - Text */
+    --gf-text-color: #333;
+    --gf-text-muted: #666;
+    --gf-text-light: #999;
+    
+    /* Colors - Background */
+    --gf-bg-color: #fff;
+    --gf-bg-alt: #f9f9f9;
+    --gf-bg-dark: #2d2d2d;
+    
+    /* Colors - Border */
+    --gf-border-color: #ddd;
+    --gf-border-focus: #0073aa;
+    --gf-border-error: #dc3232;
+    
+    /* Colors - State */
+    --gf-success-color: #34a853;
+    --gf-success-bg: #e6f4ea;
+    --gf-error-color: #dc3232;
+    --gf-error-bg: #ffeaea;
+    --gf-warning-color: #f9a825;
+    --gf-warning-bg: #fff3cd;
+    
+    /* Typography */
+    --gf-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    --gf-font-size-base: 16px;
+    --gf-font-size-small: 14px;
+    --gf-font-size-large: 18px;
+    --gf-font-size-title: 24px;
+    --gf-font-weight-normal: 400;
+    --gf-font-weight-medium: 500;
+    --gf-font-weight-bold: 600;
+    --gf-line-height-base: 1.5;
+    
+    /* Spacing */
+    --gf-spacing-xs: 5px;
+    --gf-spacing-sm: 10px;
+    --gf-spacing-md: 15px;
+    --gf-spacing-lg: 20px;
+    --gf-spacing-xl: 30px;
+    
+    /* Border Radius */
+    --gf-border-radius-sm: 4px;
+    --gf-border-radius-md: 6px;
+    --gf-border-radius-lg: 8px;
+    --gf-border-radius-xl: 12px;
+    --gf-border-radius-pill: 25px;
+    
+    /* Shadows */
+    --gf-shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --gf-shadow-md: 0 2px 6px rgba(0,0,0,0.1);
+    --gf-shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
+    --gf-shadow-focus: 0 0 0 2px rgba(0, 115, 170, 0.2);
+    
+    /* Transitions */
+    --gf-transition-fast: 0.15s ease-in-out;
+    --gf-transition-normal: 0.2s ease-in-out;
+    --gf-transition-slow: 0.3s ease-in-out;
+    
+    /* Form specific */
+    --gf-input-padding: 10px 12px;
+    --gf-input-border-width: 1px;
+    --gf-button-padding: 12px 24px;
+    --gf-field-margin: 20px;
+}
+
 /* Base Styles for Gravity Forms JS Embed */
 .gf-embedded-form {
     max-width: 100%;
     margin: 0 auto;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    font-family: var(--gf-font-family);
+    color: var(--gf-text-color);
+    background-color: var(--gf-bg-color);
 }
 
 .gf-embedded-form * {
@@ -55,27 +187,27 @@ class GF_JS_Embed_Styling {
 }
 
 .gf-form-title {
-    font-size: 24px;
-    font-weight: 600;
-    margin: 0 0 10px 0;
-    color: #333;
+    font-size: var(--gf-font-size-title);
+    font-weight: var(--gf-font-weight-bold);
+    margin: 0 0 var(--gf-spacing-sm) 0;
+    color: var(--gf-text-color);
 }
 
 .gf-form-description {
-    font-size: 16px;
-    color: #666;
-    margin: 0 0 20px 0;
+    font-size: var(--gf-font-size-base);
+    color: var(--gf-text-muted);
+    margin: 0 0 var(--gf-spacing-lg) 0;
 }
 
 .gf-field {
-    margin-bottom: 20px;
+    margin-bottom: var(--gf-field-margin);
 }
 
 .gf-field label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #333;
+    margin-bottom: var(--gf-spacing-xs);
+    font-weight: var(--gf-font-weight-bold);
+    color: var(--gf-text-color);
 }
 
 .gf-field input[type="text"],
@@ -88,20 +220,22 @@ class GF_JS_Embed_Styling {
 .gf-field textarea,
 .gf-field select {
     width: 100%;
-    padding: 10px 12px;
-    font-size: 16px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #fff;
-    transition: border-color 0.2s;
+    padding: var(--gf-input-padding);
+    font-size: var(--gf-font-size-base);
+    border: var(--gf-input-border-width) solid var(--gf-border-color);
+    border-radius: var(--gf-border-radius-sm);
+    background-color: var(--gf-bg-color);
+    transition: border-color var(--gf-transition-normal);
+    color: var(--gf-text-color);
+    font-family: var(--gf-font-family);
 }
 
 .gf-field input:focus,
 .gf-field textarea:focus,
 .gf-field select:focus {
     outline: none;
-    border-color: #0073aa;
-    box-shadow: 0 0 0 1px #0073aa;
+    border-color: var(--gf-border-focus);
+    box-shadow: var(--gf-shadow-focus);
 }
 
 .gf-field textarea {
@@ -118,63 +252,65 @@ class GF_JS_Embed_Styling {
 .gf-field-checkbox label {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
-    font-weight: normal;
+    margin-bottom: var(--gf-spacing-sm);
+    font-weight: var(--gf-font-weight-normal);
     cursor: pointer;
+    color: var(--gf-text-color);
 }
 
 .gf-field-radio input[type="radio"],
 .gf-field-checkbox input[type="checkbox"] {
     width: auto;
-    margin-right: 8px;
+    margin-right: var(--gf-spacing-sm);
 }
 
 /* Required field indicator */
 .gf-required {
-    color: #d63638;
-    font-weight: 700;
-    margin-left: 4px;
+    color: var(--gf-error-color);
+    font-weight: var(--gf-font-weight-bold);
+    margin-left: var(--gf-spacing-xs);
 }
 
 /* Field description */
 .gf-field-description {
-    font-size: 14px;
-    color: #666;
-    margin-top: 5px;
+    font-size: var(--gf-font-size-small);
+    color: var(--gf-text-muted);
+    margin-top: var(--gf-spacing-xs);
 }
 
 /* Error messages */
 .gf-error-message {
-    color: #d63638;
-    font-size: 14px;
-    margin-top: 5px;
+    color: var(--gf-error-color);
+    font-size: var(--gf-font-size-small);
+    margin-top: var(--gf-spacing-xs);
 }
 
 .gf-field.gf-field-error input,
 .gf-field.gf-field-error textarea,
 .gf-field.gf-field-error select {
-    border-color: #d63638;
+    border-color: var(--gf-border-error);
 }
 
 /* Submit button */
 .gf-form-footer {
-    margin-top: 30px;
+    margin-top: var(--gf-spacing-xl);
 }
 
 .gf-button {
-    background: #0073aa;
+    background: var(--gf-primary-color);
     color: white;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 600;
+    padding: var(--gf-button-padding);
+    font-size: var(--gf-font-size-base);
+    font-weight: var(--gf-font-weight-bold);
     border: none;
-    border-radius: 4px;
+    border-radius: var(--gf-border-radius-sm);
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color var(--gf-transition-normal);
+    font-family: var(--gf-font-family);
 }
 
 .gf-button:hover {
-    background: #005a87;
+    background: var(--gf-primary-hover);
 }
 
 .gf-button:disabled {
@@ -184,19 +320,19 @@ class GF_JS_Embed_Styling {
 
 /* Loading state */
 .gf-loading {
-    padding: 40px;
+    padding: calc(var(--gf-spacing-xl) * 1.5);
     text-align: center;
-    color: #666;
+    color: var(--gf-text-muted);
 }
 
 .gf-loading:before {
     content: "";
     display: inline-block;
-    width: 20px;
-    height: 20px;
-    margin-right: 10px;
-    border: 2px solid #ddd;
-    border-top-color: #0073aa;
+    width: var(--gf-spacing-lg);
+    height: var(--gf-spacing-lg);
+    margin-right: var(--gf-spacing-sm);
+    border: 2px solid var(--gf-border-color);
+    border-top-color: var(--gf-primary-color);
     border-radius: 50%;
     animation: gf-spin 0.8s linear infinite;
 }
@@ -207,11 +343,11 @@ class GF_JS_Embed_Styling {
 
 /* Confirmation message */
 .gf-confirmation {
-    padding: 20px;
-    background: #e6f4ea;
-    border: 1px solid #34a853;
-    border-radius: 4px;
-    color: #1a5f3f;
+    padding: var(--gf-spacing-lg);
+    background: var(--gf-success-bg);
+    border: var(--gf-input-border-width) solid var(--gf-success-color);
+    border-radius: var(--gf-border-radius-sm);
+    color: var(--gf-success-color);
     text-align: center;
 }
 
@@ -442,56 +578,69 @@ class GF_JS_Embed_Styling {
             'minimal' => '
 /* Minimal Theme */
 .gf-embedded-form.theme-minimal {
-    font-family: "Inter", -apple-system, sans-serif;
+    --gf-font-family: "Inter", -apple-system, sans-serif;
+    --gf-border-color: #e0e0e0;
+    --gf-border-focus: #333;
+    --gf-primary-color: #333;
+    --gf-primary-hover: #000;
+    --gf-border-radius-sm: 0;
+    --gf-shadow-focus: none;
 }
 
-.gf-field input,
-.gf-field textarea,
-.gf-field select {
+.gf-embedded-form.theme-minimal .gf-field input,
+.gf-embedded-form.theme-minimal .gf-field textarea,
+.gf-embedded-form.theme-minimal .gf-field select {
     border: none;
-    border-bottom: 2px solid #e0e0e0;
-    border-radius: 0;
+    border-bottom: 2px solid var(--gf-border-color);
+    border-radius: var(--gf-border-radius-sm);
     padding-left: 0;
     padding-right: 0;
     background: transparent;
 }
 
-.gf-field input:focus,
-.gf-field textarea:focus,
-.gf-field select:focus {
-    border-bottom-color: #333;
-    box-shadow: none;
+.gf-embedded-form.theme-minimal .gf-field input:focus,
+.gf-embedded-form.theme-minimal .gf-field textarea:focus,
+.gf-embedded-form.theme-minimal .gf-field select:focus {
+    border-bottom-color: var(--gf-border-focus);
+    box-shadow: var(--gf-shadow-focus);
 }
 
-.gf-button {
-    background: #333;
+.gf-embedded-form.theme-minimal .gf-button {
+    background: var(--gf-primary-color);
     text-transform: uppercase;
     letter-spacing: 1px;
-    font-size: 14px;
-    border-radius: 0;
+    font-size: var(--gf-font-size-small);
+    border-radius: var(--gf-border-radius-sm);
 }
 
-.gf-button:hover {
-    background: #000;
+.gf-embedded-form.theme-minimal .gf-button:hover {
+    background: var(--gf-primary-hover);
 }
             ',
             
             'rounded' => '
 /* Rounded Theme */
-.gf-field input,
-.gf-field textarea,
-.gf-field select {
-    border-radius: 25px;
-    padding: 12px 20px;
+.gf-embedded-form.theme-rounded {
+    --gf-border-radius-sm: 25px;
+    --gf-border-radius-md: 15px;
+    --gf-input-padding: 12px 20px;
+    --gf-button-padding: 14px 30px;
 }
 
-.gf-button {
-    border-radius: 25px;
-    padding: 14px 30px;
+.gf-embedded-form.theme-rounded .gf-field input,
+.gf-embedded-form.theme-rounded .gf-field textarea,
+.gf-embedded-form.theme-rounded .gf-field select {
+    border-radius: var(--gf-border-radius-sm);
+    padding: var(--gf-input-padding);
 }
 
-.gf-confirmation {
-    border-radius: 15px;
+.gf-embedded-form.theme-rounded .gf-button {
+    border-radius: var(--gf-border-radius-sm);
+    padding: var(--gf-button-padding);
+}
+
+.gf-embedded-form.theme-rounded .gf-confirmation {
+    border-radius: var(--gf-border-radius-md);
 }
             ',
             

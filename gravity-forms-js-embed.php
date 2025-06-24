@@ -3,7 +3,7 @@
  * Plugin Name: Gravity Forms JavaScript Embed
  * Plugin URI: https://github.com/jezweb/js-gravity-forms-embed
  * Description: Embed Gravity Forms on any website using JavaScript instead of iframes. Provides a modern, performant alternative to iframe embedding with full support for all Gravity Forms features.
- * Version: 0.4.0
+ * Version: 0.5.0
  * Requires at least: 5.8
  * Requires PHP: 7.4
  * Author: Jezweb
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('GF_JS_EMBED_VERSION', '0.4.0');
+define('GF_JS_EMBED_VERSION', '0.5.0');
 define('GF_JS_EMBED_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GF_JS_EMBED_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('GF_JS_EMBED_PLUGIN_FILE', __FILE__);
@@ -55,6 +55,7 @@ function gf_js_embed_load_plugin() {
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-api.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-admin.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-security.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-rate-limiter.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-analytics.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-database.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-events.php';
@@ -62,15 +63,27 @@ function gf_js_embed_load_plugin() {
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-multipage.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-conditional-logic.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-styling.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-css-variables.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-theme-manager.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-theme-customizer-admin.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-performance.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-lazy-loading.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-i18n.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-testing.php';
     
     // Initialize the plugin
     GF_JavaScript_Embed::get_instance();
     
-    // Initialize testing dashboard
+    // Initialize theme manager
+    GF_JS_Embed_Theme_Manager::get_instance();
+    
+    // Initialize performance optimization
+    GF_JS_Embed_Performance::get_instance();
+    
+    // Initialize admin interfaces
     if (is_admin()) {
         GF_JS_Embed_Testing::get_instance();
+        GF_JS_Embed_Theme_Customizer_Admin::get_instance();
     }
 }
 

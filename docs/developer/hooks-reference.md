@@ -7,6 +7,7 @@ This document provides a comprehensive reference for all hooks and filters avail
 - [WordPress Core Hooks](#wordpress-core-hooks)
 - [Gravity Forms Integration Hooks](#gravity-forms-integration-hooks)
 - [Plugin-Specific Filters](#plugin-specific-filters)
+- [Theme System Hooks](#theme-system-hooks)
 - [Security Hooks](#security-hooks)
 - [API Extension Points](#api-extension-points)
 - [Usage Examples](#usage-examples)
@@ -159,6 +160,8 @@ The plugin provides several filters for customization:
 ### `gf_js_embed_form_data`
 Filter form data before sending to API.
 
+**Location:** `includes/class-gf-js-embed-api.php:300`
+
 **Parameters:**
 - `$form_data` (array): The prepared form data
 - `$form` (array): The original Gravity Forms form object
@@ -176,6 +179,8 @@ add_filter('gf_js_embed_form_data', function($form_data, $form, $settings) {
 ### `gf_js_embed_security_settings`
 Filter security settings for forms.
 
+**Location:** `includes/class-gf-js-embed-security.php:711`
+
 **Parameters:**
 - `$security_settings` (array): Current security settings
 - `$form_id` (int): The form ID
@@ -192,6 +197,8 @@ add_filter('gf_js_embed_security_settings', function($security_settings, $form_i
 ### `gf_js_embed_allowed_domains`
 Filter allowed domains for CORS.
 
+**Location:** `includes/class-gf-js-embed-security.php:68`
+
 **Parameters:**
 - `$domains` (array): Array of allowed domains
 - `$form_id` (int): The form ID
@@ -205,12 +212,304 @@ add_filter('gf_js_embed_allowed_domains', function($domains, $form_id) {
 }, 10, 2);
 ```
 
+### `gf_js_embed_allow_domain`
+Filter whether a specific domain is allowed.
+
+**Location:** `includes/class-gf-js-embed-security.php:93`
+
+**Parameters:**
+- `$allowed` (bool): Whether domain is allowed (default: true)
+- `$domain` (string): The domain being checked
+
+**Example:**
+```php
+add_filter('gf_js_embed_allow_domain', function($allowed, $domain) {
+    // Block specific domains
+    if ($domain === 'blocked-site.com') {
+        return false;
+    }
+    return $allowed;
+}, 10, 2);
+```
+
+### `gf_js_embed_allowed_file_types`
+Filter allowed file types for uploads.
+
+**Location:** `includes/class-gf-js-embed-security.php:217`
+
+**Parameters:**
+- `$allowed_types` (array): Array of allowed file extensions
+
+**Example:**
+```php
+add_filter('gf_js_embed_allowed_file_types', function($allowed_types) {
+    // Add additional file types
+    $allowed_types[] = 'svg';
+    return $allowed_types;
+});
+```
+
+### `gf_js_embed_rate_limit`
+Filter rate limiting configuration.
+
+**Location:** `includes/class-gf-js-embed-rate-limiter.php:267`
+
+**Parameters:**
+- `$config` (array): Rate limit configuration
+- `$identifier` (string): Client identifier (IP address)
+- `$form_id` (int): Form ID
+
+**Example:**
+```php
+add_filter('gf_js_embed_rate_limit', function($config, $identifier, $form_id) {
+    // Custom rate limiting logic
+    if ($identifier === '192.168.1.100') {
+        $config['requests_per_minute'] = 100; // Higher limit for trusted IP
+    }
+    return $config;
+}, 10, 3);
+```
+
+### `gf_js_embed_validate_field`
+Filter field validation results.
+
+**Location:** `includes/class-gf-js-embed-multipage.php:424`
+
+**Parameters:**
+- `$result` (bool): Validation result
+- `$field` (object): The field being validated
+- `$value` (mixed): The field value
+
+**Example:**
+```php
+add_filter('gf_js_embed_validate_field', function($result, $field, $value) {
+    // Custom field validation
+    if ($field->type === 'email' && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+    return $result;
+}, 10, 3);
+```
+
+### `gf_js_embed_event_permissions`
+Filter event tracking permissions.
+
+**Location:** `includes/class-gf-js-embed-events.php:135`
+
+**Parameters:**
+- `$allowed` (bool): Whether event tracking is allowed
+- `$request` (WP_REST_Request): The request object
+- `$form` (array): The form object
+
+**Example:**
+```php
+add_filter('gf_js_embed_event_permissions', function($allowed, $request, $form) {
+    // Disable event tracking for specific forms
+    if ($form['id'] === 5) {
+        return false;
+    }
+    return $allowed;
+}, 10, 3);
+```
+
+### `gf_js_embed_translations`
+Filter translation strings.
+
+**Location:** `includes/class-gf-js-embed-i18n.php:51`
+
+**Parameters:**
+- `$translations` (array): Translation strings
+- `$locale` (string): Current locale
+
+**Example:**
+```php
+add_filter('gf_js_embed_translations', function($translations, $locale) {
+    // Custom translations
+    $translations['custom_message'] = __('Custom message', 'textdomain');
+    return $translations;
+}, 10, 2);
+```
+
+### `gf_js_embed_datepicker_settings`
+Filter datepicker configuration.
+
+**Location:** `includes/class-gf-js-embed-i18n.php:175`
+
+**Parameters:**
+- `$settings` (array): Datepicker settings
+- `$locale` (string): Current locale
+
+**Example:**
+```php
+add_filter('gf_js_embed_datepicker_settings', function($settings, $locale) {
+    // Custom datepicker settings
+    $settings['showWeekNumber'] = true;
+    return $settings;
+}, 10, 2);
+```
+
+### `gf_js_embed_number_format`
+Filter number formatting settings.
+
+**Location:** `includes/class-gf-js-embed-i18n.php:196`
+
+**Parameters:**
+- `$format` (array): Number format settings
+
+**Example:**
+```php
+add_filter('gf_js_embed_number_format', function($format) {
+    // Custom number formatting
+    $format['decimals'] = 3;
+    return $format;
+});
+```
+
+## Theme System Hooks
+
+### Filters
+
+#### `gf_js_embed_theme_variables`
+Filter CSS variables before they are applied to a theme.
+
+**Location:** `includes/class-gf-js-embed-css-variables.php:643`
+
+**Parameters:**
+- `$variables` (array): Array of CSS variable name => value pairs
+- `$theme_name` (string): Name of the current theme
+
+**Example:**
+```php
+add_filter('gf_js_embed_theme_variables', function($variables, $theme_name) {
+    // Customize variables for specific themes
+    if ($theme_name === 'dark') {
+        $variables['--gf-bg-color'] = '#2d2d2d';
+        $variables['--gf-text-color'] = '#ffffff';
+    }
+    return $variables;
+}, 10, 2);
+```
+
+#### `gf_js_embed_predefined_themes`
+Filter the list of predefined themes.
+
+**Location:** `includes/class-gf-js-embed-theme-manager.php:444`
+
+**Parameters:**
+- `$themes` (array): Array of predefined themes
+
+**Example:**
+```php
+add_filter('gf_js_embed_predefined_themes', function($themes) {
+    // Add custom predefined theme
+    $themes['corporate'] = [
+        'name' => 'Corporate',
+        'description' => 'Professional corporate styling',
+        'variables' => [
+            '--gf-primary-color' => '#1e3a8a',
+            '--gf-font-family' => 'Georgia, serif'
+        ]
+    ];
+    return $themes;
+});
+```
+
+#### `gf_js_embed_theme_customizer_capability`
+Filter the required capability for accessing the theme customizer.
+
+**Location:** `includes/class-gf-js-embed-theme-customizer-admin.php:69`
+
+**Parameters:**
+- `$capability` (string): Required capability (default: 'gravityforms_edit_forms')
+
+**Example:**
+```php
+add_filter('gf_js_embed_theme_customizer_capability', function($capability) {
+    // Allow editors to access theme customizer
+    return 'edit_pages';
+});
+```
+
+#### `gf_js_embed_theme_customizer_localize`
+Filter the localized data for the theme customizer JavaScript.
+
+**Location:** `includes/class-gf-js-embed-theme-customizer-admin.php:149`
+
+**Parameters:**
+- `$localize_data` (array): Data to be localized for JavaScript
+
+**Example:**
+```php
+add_filter('gf_js_embed_theme_customizer_localize', function($localize_data) {
+    // Add custom data for JavaScript
+    $localize_data['custom_setting'] = get_option('my_custom_setting');
+    return $localize_data;
+});
+```
+
+### Actions
+
+#### `gf_js_embed_theme_applied`
+Fires when a theme is applied to a form.
+
+**Location:** `includes/class-gf-js-embed.php:306`
+
+**Parameters:**
+- `$theme_name` (string): Name of the applied theme
+- `$form_id` (int): Gravity Forms form ID
+
+**Example:**
+```php
+add_action('gf_js_embed_theme_applied', function($theme_name, $form_id) {
+    // Log theme usage
+    error_log("Theme '{$theme_name}' applied to form {$form_id}");
+}, 10, 2);
+```
+
+#### `gf_js_embed_theme_saved`
+Fires when a custom theme is saved.
+
+**Location:** `includes/class-gf-js-embed-theme-manager.php:279`
+
+**Parameters:**
+- `$theme_name` (string): Name of the saved theme
+- `$theme_data` (array): Complete theme data
+- `$is_update` (bool): Whether this was an update or new theme
+
+**Example:**
+```php
+add_action('gf_js_embed_theme_saved', function($theme_name, $theme_data, $is_update) {
+    if (!$is_update) {
+        // Send notification when new theme is created
+        wp_mail('admin@example.com', 'New Theme Created', "Theme '{$theme_name}' was created.");
+    }
+}, 10, 3);
+```
+
+#### `gf_js_embed_theme_deleted`
+Fires when a custom theme is deleted.
+
+**Location:** `includes/class-gf-js-embed-theme-manager.php:563`
+
+**Parameters:**
+- `$theme_name` (string): Name of the deleted theme
+
+**Example:**
+```php
+add_action('gf_js_embed_theme_deleted', function($theme_name) {
+    // Log theme deletion
+    error_log("Theme '{$theme_name}' was deleted");
+});
+```
+
 ## Security Hooks
 
 ### Actions
 
 #### `gf_js_embed_security_violation`
 Triggered when a security violation is detected.
+
+**Location:** `includes/class-gf-js-embed-security.php:676`
 
 **Parameters:**
 - `$violation_type` (string): Type of violation
@@ -225,26 +524,47 @@ add_action('gf_js_embed_security_violation', function($violation_type, $details,
 }, 10, 3);
 ```
 
-### Filters
+#### `gf_js_embed_security_event`
+Triggered when a security event is logged.
 
-#### `gf_js_embed_rate_limit`
-Filter rate limiting settings.
+**Location:** `includes/class-gf-js-embed-security.php:274`
 
 **Parameters:**
-- `$limits` (array): Rate limit configuration
-- `$identifier` (string): Client identifier (IP address)
-- `$form_id` (int): Form ID
+- `$event_type` (string): Type of security event
+- `$log_entry` (array): Complete log entry data
 
 **Example:**
 ```php
-add_filter('gf_js_embed_rate_limit', function($limits, $identifier, $form_id) {
-    // Custom rate limiting logic
-    if ($identifier === '192.168.1.100') {
-        $limits['requests_per_minute'] = 100; // Higher limit for trusted IP
+add_action('gf_js_embed_security_event', function($event_type, $log_entry) {
+    // Send alerts for critical security events
+    if ($event_type === 'blocked_request') {
+        wp_mail('security@example.com', 'Security Alert', json_encode($log_entry));
     }
-    return $limits;
-}, 10, 3);
+}, 10, 2);
 ```
+
+#### `gf_js_embed_log_event`
+General event logging action.
+
+**Location:** `includes/class-gf-js-embed-multipage.php:527`
+
+**Parameters:**
+- `$event_data` (array): Event data to be logged
+
+**Example:**
+```php
+add_action('gf_js_embed_log_event', function($event_data) {
+    // Custom event logging
+    if (isset($event_data['event_type']) && $event_data['event_type'] === 'page_completed') {
+        // Track page completion analytics
+        custom_analytics_track('form_page_completed', $event_data);
+    }
+});
+```
+
+### Filters
+
+Security-related filters are documented in the [Plugin-Specific Filters](#plugin-specific-filters) section above.
 
 ## API Extension Points
 

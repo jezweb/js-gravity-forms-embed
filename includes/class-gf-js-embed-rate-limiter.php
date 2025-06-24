@@ -255,7 +255,16 @@ class GF_JS_Embed_Rate_Limiter {
             $config['enabled'] = false;
         }
         
-        return $config;
+        /**
+         * Filters rate limit configuration
+         * 
+         * @since 2.0.0
+         * 
+         * @param array $config Rate limit configuration
+         * @param string $identifier Client identifier (usually IP address)
+         * @param int|null $form_id Form ID if applicable
+         */
+        return apply_filters('gf_js_embed_rate_limit', $config, $_SERVER['REMOTE_ADDR'] ?? 'unknown', $form_id);
     }
     
     /**

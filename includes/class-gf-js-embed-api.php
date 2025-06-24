@@ -237,7 +237,20 @@ class GF_JS_Embed_API {
         // Prepare form data
         $form_data = $this->prepare_form_data($form, $settings);
         
-        return new WP_REST_Response(['success' => true, 'form' => $form_data]);
+        $response = ['success' => true, 'form' => $form_data];
+        
+        /**
+         * Filters API response before sending
+         * 
+         * @since 2.0.0
+         * 
+         * @param array $response The API response data
+         * @param string $endpoint The endpoint being called
+         * @param WP_REST_Request $request The request object
+         */
+        $response = apply_filters('gf_js_embed_api_response', $response, 'form', $request);
+        
+        return new WP_REST_Response($response);
     }
     
     /**
@@ -275,7 +288,16 @@ class GF_JS_Embed_API {
             $form_data['conditionalLogic'] = $form['conditionalLogic'];
         }
         
-        return $form_data;
+        /**
+         * Filters form data before API response
+         * 
+         * @since 2.0.0
+         * 
+         * @param array $form_data The prepared form data
+         * @param array $form The original Gravity Forms form object
+         * @param array $settings Form embed settings
+         */
+        return apply_filters('gf_js_embed_form_data', $form_data, $form, $settings);
     }
     
     /**
@@ -399,6 +421,17 @@ class GF_JS_Embed_API {
         // Sanitize form data
         $sanitized_data = GF_JS_Embed_Security::sanitize_form_data($submitted_data, $form['fields']);
         
+        /**
+         * Filters form submission data before processing
+         * 
+         * @since 2.0.0
+         * 
+         * @param array $sanitized_data The sanitized form submission data
+         * @param array $form The form object
+         * @param WP_REST_Request $request The request object
+         */
+        $sanitized_data = apply_filters('gf_js_embed_submission_data', $sanitized_data, $form, $request);
+        
         // Process submission
         $input_values = [];
         foreach ($sanitized_data as $key => $value) {
@@ -442,7 +475,7 @@ class GF_JS_Embed_API {
             // Get confirmation
             $confirmation = GFFormDisplay::get_confirmation($form, $entry);
             
-            return new WP_REST_Response([
+            $response = [
                 'success' => true,
                 'entry_id' => $entry_id,
                 'confirmation' => [
@@ -451,7 +484,11 @@ class GF_JS_Embed_API {
                     'url' => $confirmation['url'] ?? '',
                     'pageId' => $confirmation['pageId'] ?? ''
                 ]
-            ]);
+            ];
+            
+            $response = apply_filters('gf_js_embed_api_response', $response, 'submit', $request);
+            
+            return new WP_REST_Response($response);
         } else {
             // Return validation errors
             $errors = [];
@@ -461,11 +498,15 @@ class GF_JS_Embed_API {
                 }
             }
             
-            return new WP_REST_Response([
+            $response = [
                 'success' => false,
                 'errors' => $errors,
                 'message' => __('Please correct the errors below.', 'gf-js-embed')
-            ], 400);
+            ];
+            
+            $response = apply_filters('gf_js_embed_api_response', $response, 'submit', $request);
+            
+            return new WP_REST_Response($response, 400);
         }
     }
     

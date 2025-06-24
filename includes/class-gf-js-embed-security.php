@@ -52,6 +52,10 @@ class GF_JS_Embed_Security {
         $domain = parse_url($origin, PHP_URL_HOST);
         
         if (!$domain) {
+            self::trigger_security_violation('invalid_origin', [
+                'origin' => $origin,
+                'reason' => 'Unable to parse domain from origin'
+            ], $form_id);
             return false;
         }
         
@@ -59,6 +63,9 @@ class GF_JS_Embed_Security {
         if ($form_id) {
             $settings = GF_JS_Embed_Admin::get_form_settings($form_id);
             $allowed_domains = $settings['allowed_domains'];
+            
+            // Apply filter to allow modification of allowed domains
+            $allowed_domains = apply_filters('gf_js_embed_allowed_domains', $allowed_domains, $form_id);
             
             // If no domains specified or * is in the list, allow all
             if (empty($allowed_domains) || in_array('*', $allowed_domains)) {
@@ -71,6 +78,13 @@ class GF_JS_Embed_Security {
                     return true;
                 }
             }
+            
+            // Domain not allowed - trigger security violation
+            self::trigger_security_violation('domain_not_allowed', [
+                'domain' => $domain,
+                'origin' => $origin,
+                'allowed_domains' => $allowed_domains
+            ], $form_id);
             
             return false;
         }
@@ -117,7 +131,16 @@ class GF_JS_Embed_Security {
             return true; // No API key required
         }
         
-        return hash_equals($settings['api_key'], $api_key);
+        $is_valid = hash_equals($settings['api_key'], $api_key);
+        
+        if (!$is_valid) {
+            self::trigger_security_violation('invalid_api_key', [
+                'provided_key' => substr($api_key, 0, 8) . '...',
+                'form_id' => $form_id
+            ], $form_id);
+        }
+        
+        return $is_valid;
     }
     
     /**
@@ -618,5 +641,73 @@ class GF_JS_Embed_Security {
         }
         
         return $results;
+    }
+    
+    /**
+     * Trigger security violation hook
+     * 
+     * @since 2.0.0
+     * 
+     * @param string $violation_type Type of security violation
+     * @param array $details Details about the violation
+     * @param int|null $form_id Form ID if applicable
+     */
+    public static function trigger_security_violation($violation_type, $details = [], $form_id = null) {
+        // Add standard details
+        $details = array_merge([
+            'timestamp' => current_time('mysql'),
+            'ip_address' => $_SERVER['REMOTE_ADDR'] ?? '',
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            'request_uri' => $_SERVER['REQUEST_URI'] ?? ''
+        ], $details);
+        
+        // Log the event
+        self::log_security_event($violation_type, $details);
+        
+        /**
+         * Fires when a security violation is detected
+         * 
+         * @since 2.0.0
+         * 
+         * @param string $violation_type Type of violation (invalid_api_key, domain_not_allowed, etc.)
+         * @param array $details Violation details including IP, timestamp, etc.
+         * @param int|null $form_id Form ID if applicable
+         */
+        do_action('gf_js_embed_security_violation', $violation_type, $details, $form_id);
+    }
+    
+    /**
+     * Get security settings with filter
+     * 
+     * @since 2.0.0
+     * 
+     * @param int $form_id Form ID
+     * @return array Security settings
+     */
+    public static function get_security_settings($form_id) {
+        $form_settings = GF_JS_Embed_Admin::get_form_settings($form_id);
+        
+        $security_settings = [
+            'rate_limit_enabled' => $form_settings['rate_limit_enabled'] ?? true,
+            'rate_limit_requests' => $form_settings['rate_limit_requests'] ?? 60,
+            'rate_limit_window' => $form_settings['rate_limit_window'] ?? 60,
+            'honeypot_enabled' => $form_settings['honeypot_enabled'] ?? true,
+            'csrf_enabled' => $form_settings['csrf_enabled'] ?? true,
+            'spam_detection' => $form_settings['spam_detection'] ?? true,
+            'bot_detection' => $form_settings['bot_detection'] ?? true,
+            'security_level' => $form_settings['security_level'] ?? 'medium',
+            'allowed_domains' => $form_settings['allowed_domains'] ?? [],
+            'api_key' => $form_settings['api_key'] ?? ''
+        ];
+        
+        /**
+         * Filters security settings for a form
+         * 
+         * @since 2.0.0
+         * 
+         * @param array $security_settings Current security settings
+         * @param int $form_id Form ID
+         */
+        return apply_filters('gf_js_embed_security_settings', $security_settings, $form_id);
     }
 }
