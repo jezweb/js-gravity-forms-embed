@@ -44,6 +44,11 @@ class GF_JavaScript_Embed {
         GF_JS_Embed_API::get_instance();
         GF_JS_Embed_Admin::get_instance();
         GF_JS_Embed_Security::get_instance();
+        GF_JS_Embed_Rate_Limiter::get_instance();
+        GF_JS_Embed_Events::get_instance();
+        GF_JS_Embed_CSRF::get_instance();
+        GF_JS_Embed_MultiPage::get_instance();
+        GF_JS_Embed_Conditional_Logic::get_instance();
     }
     
     /**
@@ -66,6 +71,10 @@ class GF_JavaScript_Embed {
         });
         
         add_action('template_redirect', [$this, 'serve_embed_script']);
+        
+        // Add cron job handlers
+        add_action('gf_js_embed_analytics_cleanup', [$this, 'cleanup_analytics_data']);
+        add_action('gf_js_embed_analytics_aggregate', [$this, 'aggregate_analytics_data']);
     }
     
     /**
@@ -81,6 +90,17 @@ class GF_JavaScript_Embed {
             
             // Include the JavaScript SDK
             include GF_JS_EMBED_PLUGIN_DIR . 'assets/js/gf-embed-sdk.js';
+            
+            // Include analytics if enabled
+            $settings = get_option('gf_js_embed_settings', []);
+            if (!empty($settings['enable_analytics'])) {
+                echo "\n\n// Analytics Module\n";
+                include GF_JS_EMBED_PLUGIN_DIR . 'assets/js/embed-analytics.js';
+            }
+            
+            // Include event system
+            echo "\n\n// Event System Module\n";
+            include GF_JS_EMBED_PLUGIN_DIR . 'assets/js/gf-embed-events.js';
             
             exit;
         }
@@ -171,5 +191,37 @@ class GF_JavaScript_Embed {
         ];
         
         return array_merge($links, $row_meta);
+    }
+    
+    /**
+     * Cleanup old analytics data
+     */
+    public function cleanup_analytics_data() {
+        $settings = get_option('gf_js_embed_settings', []);
+        $retention_days = $settings['analytics_retention_days'] ?? 90;
+        
+        GF_JS_Embed_Database::clean_old_data($retention_days);
+    }
+    
+    /**
+     * Aggregate analytics data for performance
+     */
+    public function aggregate_analytics_data() {
+        // This could be used to pre-calculate common queries
+        // For now, we'll just update a transient with recent stats
+        
+        global $wpdb;
+        $views_table = $wpdb->prefix . 'gf_js_embed_views';
+        $submissions_table = $wpdb->prefix . 'gf_js_embed_submissions';
+        
+        // Get total counts for caching
+        $total_views = $wpdb->get_var("SELECT COUNT(*) FROM $views_table WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+        $total_submissions = $wpdb->get_var("SELECT COUNT(*) FROM $submissions_table WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+        
+        set_transient('gf_js_embed_stats_cache', [
+            'total_views_30d' => $total_views,
+            'total_submissions_30d' => $total_submissions,
+            'last_updated' => time()
+        ], HOUR_IN_SECONDS);
     }
 }

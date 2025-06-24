@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Limiting Test - Gravity Forms JS Embed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .controls {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .output {
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .metric-card {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #0073aa;
+        }
+        .metric-label {
+            color: #666;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+        }
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0073aa, #005a87);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .test-results table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .test-results th, .test-results td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .test-results th {
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rate Limiting Test - Gravity Forms JS Embed</h1>
+    
+    <div class="test-section">
+        <h2>Test Configuration</h2>
+        <div class="controls">
+            <label>
+                WordPress Site URL:
+                <input type="text" id="site-url" placeholder="https://your-site.com" value="">
+            </label>
+            <label>
+                Form ID:
+                <input type="text" id="form-id" placeholder="1" value="1">
+            </label>
+            <label>
+                API Key (optional):
+                <input type="text" id="api-key" placeholder="gfjs_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" value="">
+            </label>
+            <label>
+                Test Requests Count:
+                <input type="number" id="request-count" min="1" max="100" value="15">
+            </label>
+            <label>
+                Request Interval (ms):
+                <input type="number" id="request-interval" min="0" max="5000" value="100">
+            </label>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Rate Limit Testing</h2>
+        <div class="controls">
+            <button onclick="testRateLimit()">Start Rate Limit Test</button>
+            <button onclick="testSingleRequest()">Test Single Request</button>
+            <button onclick="clearResults()">Clear Results</button>
+        </div>
+        
+        <div class="progress">
+            <div class="progress-bar" id="test-progress"></div>
+        </div>
+        <div id="test-status">Ready to test</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Current Metrics</h2>
+        <div class="metric-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="successful-requests">0</div>
+                <div class="metric-label">Successful</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="rate-limited-requests">0</div>
+                <div class="metric-label">Rate Limited</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="failed-requests">0</div>
+                <div class="metric-label">Failed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="current-limit">?</div>
+                <div class="metric-label">Rate Limit</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results-output" class="output">
+            <div>Test results will appear here...</div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Response Headers</h2>
+        <div id="headers-output" class="output">
+            <div>Response headers will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        let testState = {
+            isRunning: false,
+            successCount: 0,
+            rateLimitedCount: 0,
+            failedCount: 0,
+            currentLimit: null,
+            responses: []
+        };
+        
+        function getConfig() {
+            return {
+                siteUrl: document.getElementById('site-url').value || window.location.origin,
+                formId: document.getElementById('form-id').value || '1',
+                apiKey: document.getElementById('api-key').value,
+                requestCount: parseInt(document.getElementById('request-count').value) || 15,
+                requestInterval: parseInt(document.getElementById('request-interval').value) || 100
+            };
+        }
+        
+        function updateMetrics() {
+            document.getElementById('successful-requests').textContent = testState.successCount;
+            document.getElementById('rate-limited-requests').textContent = testState.rateLimitedCount;
+            document.getElementById('failed-requests').textContent = testState.failedCount;
+            document.getElementById('current-limit').textContent = testState.currentLimit || '?';
+        }
+        
+        function logResult(message, type = 'info') {
+            const output = document.getElementById('results-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = `<strong>${timestamp}:</strong> ${message}`;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function logHeaders(headers) {
+            const output = document.getElementById('headers-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.innerHTML = `<strong>${timestamp}:</strong><br><pre>${JSON.stringify(headers, null, 2)}</pre>`;
+            output.appendChild(div);
+            output.scrollTop = output.scrollHeight;
+        }
+        
+        function updateProgress(current, total) {
+            const percentage = (current / total) * 100;
+            document.getElementById('test-progress').style.width = percentage + '%';
+        }
+        
+        async function makeTestRequest(config, requestNumber) {
+            const url = `${config.siteUrl}/wp-json/gf-embed/v1/form/${config.formId}`;
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            };
+            
+            if (config.apiKey) {
+                headers['X-API-Key'] = config.apiKey;
+            }
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: headers
+                });
+                
+                // Extract rate limit headers
+                const rateLimitHeaders = {
+                    'X-RateLimit-Limit': response.headers.get('X-RateLimit-Limit'),
+                    'X-RateLimit-Remaining': response.headers.get('X-RateLimit-Remaining'),
+                    'X-RateLimit-Reset': response.headers.get('X-RateLimit-Reset'),
+                    'Retry-After': response.headers.get('Retry-After')
+                };
+                
+                // Update current limit if available
+                if (rateLimitHeaders['X-RateLimit-Limit']) {
+                    testState.currentLimit = rateLimitHeaders['X-RateLimit-Limit'];
+                }
+                
+                const data = await response.json();
+                
+                const result = {
+                    requestNumber,
+                    status: response.status,
+                    ok: response.ok,
+                    headers: rateLimitHeaders,
+                    data: data,
+                    timestamp: new Date().toISOString()
+                };
+                
+                testState.responses.push(result);
+                
+                if (response.status === 429) {
+                    testState.rateLimitedCount++;
+                    logResult(`Request ${requestNumber}: Rate limited (429)`, 'warning');
+                    logHeaders(rateLimitHeaders);
+                } else if (response.ok) {
+                    testState.successCount++;
+                    logResult(`Request ${requestNumber}: Success (${response.status})`, 'success');
+                    if (requestNumber === 1) {
+                        logHeaders(rateLimitHeaders);
+                    }
+                } else {
+                    testState.failedCount++;
+                    logResult(`Request ${requestNumber}: Failed (${response.status}) - ${data.message || 'Unknown error'}`, 'error');
+                }
+                
+                return result;
+                
+            } catch (error) {
+                testState.failedCount++;
+                logResult(`Request ${requestNumber}: Network error - ${error.message}`, 'error');
+                
+                return {
+                    requestNumber,
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                };
+            }
+        }
+        
+        async function testRateLimit() {
+            if (testState.isRunning) return;
+            
+            const config = getConfig();
+            testState.isRunning = true;
+            testState.successCount = 0;
+            testState.rateLimitedCount = 0;
+            testState.failedCount = 0;
+            testState.responses = [];
+            
+            document.getElementById('test-status').textContent = 'Running rate limit test...';
+            logResult('Starting rate limit test...', 'info');
+            logResult(`Configuration: ${config.requestCount} requests, ${config.requestInterval}ms interval`, 'info');
+            
+            try {
+                for (let i = 1; i <= config.requestCount; i++) {
+                    updateProgress(i - 1, config.requestCount);
+                    
+                    await makeTestRequest(config, i);
+                    updateMetrics();
+                    
+                    // Wait between requests
+                    if (i < config.requestCount && config.requestInterval > 0) {
+                        await new Promise(resolve => setTimeout(resolve, config.requestInterval));
+                    }
+                }
+                
+                updateProgress(config.requestCount, config.requestCount);
+                
+                // Generate summary
+                generateTestSummary();
+                
+            } catch (error) {
+                logResult(`Test failed: ${error.message}`, 'error');
+            } finally {
+                testState.isRunning = false;
+                document.getElementById('test-status').textContent = 'Test completed';
+            }
+        }
+        
+        function generateTestSummary() {
+            const total = testState.successCount + testState.rateLimitedCount + testState.failedCount;
+            
+            logResult('--- TEST SUMMARY ---', 'info');
+            logResult(`Total requests: ${total}`, 'info');
+            logResult(`Successful: ${testState.successCount} (${((testState.successCount/total)*100).toFixed(1)}%)`, 'success');
+            logResult(`Rate limited: ${testState.rateLimitedCount} (${((testState.rateLimitedCount/total)*100).toFixed(1)}%)`, 'warning');
+            logResult(`Failed: ${testState.failedCount} (${((testState.failedCount/total)*100).toFixed(1)}%)`, 'error');
+            
+            if (testState.rateLimitedCount > 0) {
+                logResult('✅ Rate limiting is working correctly!', 'success');
+            } else if (testState.successCount === total) {
+                logResult('⚠️ No rate limiting detected. Check your settings.', 'warning');
+            } else {
+                logResult('❌ Test inconclusive due to errors.', 'error');
+            }
+            
+            // Create detailed results table
+            createResultsTable();
+        }
+        
+        function createResultsTable() {
+            const output = document.getElementById('results-output');
+            const table = document.createElement('table');
+            table.className = 'test-results';
+            
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Request #</th>
+                        <th>Status</th>
+                        <th>Limit</th>
+                        <th>Remaining</th>
+                        <th>Reset Time</th>
+                        <th>Retry After</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${testState.responses.map(response => `
+                        <tr>
+                            <td>${response.requestNumber}</td>
+                            <td>${response.status || 'Error'}</td>
+                            <td>${response.headers?.['X-RateLimit-Limit'] || 'N/A'}</td>
+                            <td>${response.headers?.['X-RateLimit-Remaining'] || 'N/A'}</td>
+                            <td>${response.headers?.['X-RateLimit-Reset'] ? new Date(parseInt(response.headers['X-RateLimit-Reset']) * 1000).toLocaleTimeString() : 'N/A'}</td>
+                            <td>${response.headers?.['Retry-After'] || 'N/A'}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            
+            output.appendChild(table);
+        }
+        
+        async function testSingleRequest() {
+            const config = getConfig();
+            logResult('Making single test request...', 'info');
+            
+            await makeTestRequest(config, 'single');
+            updateMetrics();
+        }
+        
+        function clearResults() {
+            document.getElementById('results-output').innerHTML = '<div>Test results will appear here...</div>';
+            document.getElementById('headers-output').innerHTML = '<div>Response headers will appear here...</div>';
+            document.getElementById('test-progress').style.width = '0%';
+            document.getElementById('test-status').textContent = 'Ready to test';
+            
+            testState.successCount = 0;
+            testState.rateLimitedCount = 0;
+            testState.failedCount = 0;
+            testState.responses = [];
+            updateMetrics();
+        }
+        
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentOrigin = window.location.origin;
+            if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+                document.getElementById('site-url').value = currentOrigin;
+            }
+            updateMetrics();
+        });
+    </script>
+</body>
+</html>

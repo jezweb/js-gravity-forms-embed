@@ -74,15 +74,8 @@ Comprehensive support for all Gravity Forms field types:
   - IP address restrictions
 - **Rate Limiting** - Configurable limits per IP/domain
 - **CSRF Protection** - Token-based form security
-- **Honeypot Fields** - Invisible spam protection
-- **Bot Detection** - Advanced pattern recognition
 - **Input Sanitization** - XSS and injection prevention
-- **Encrypted Submissions** - Secure data transmission
 
-**Security Levels:**
-- Low - Basic protection
-- Medium - Recommended for most sites
-- High - Maximum security with strict validation
 
 ### 📊 Analytics & Insights
 
@@ -96,55 +89,49 @@ Comprehensive support for all Gravity Forms field types:
   
 - **Traffic Analysis**
   - Views by domain/website
-  - Geographic distribution
   - Device and browser statistics
   - Peak usage times
   
 - **Engagement Tracking**
-  - Field interaction heatmaps
   - Drop-off points identification
   - Error frequency by field
   - Multi-page progression analysis
 
 ### ⚡ Performance Optimization
 
-- **Lazy Loading** - Forms load only when needed
 - **Asset Optimization** - Minified CSS and JavaScript
-- **CDN Ready** - Compatible with content delivery networks
 - **Caching Support** - Intelligent caching strategies
 - **Async Loading** - Non-blocking script execution
-- **Minimal Footprint** - ~45KB gzipped total size
 
 ### 🛠️ Developer Features
 
 **JavaScript SDK:**
 ```javascript
-// Programmatic form loading
-GravityFormsEmbed.loadForm(formId, container, {
-    theme: 'dark',
-    apiKey: 'your-key',
-    onSuccess: (entry) => console.log('Submitted:', entry)
+// Get the global event system instance
+const gfEvents = window.GFEvents;
+
+// Listen for form events
+gfEvents.on('form.ready', (data) => {
+    console.log('Form ready:', data.formId);
 });
 
-// Event system
-document.addEventListener('gfEmbedFormReady', (e) => {
-    // Form loaded and ready
+gfEvents.on('field.changed', (data) => {
+    console.log('Field changed:', data.fieldId, data.value);
 });
 
-document.addEventListener('gfEmbedFieldChange', (e) => {
-    // Field value changed
+gfEvents.on('form.submitted', (data) => {
+    console.log('Form submitted:', data.formId);
 });
 
-document.addEventListener('gfEmbedSubmitSuccess', (e) => {
-    // Form submitted successfully
-});
+// Emit custom events
+gfEvents.emit('custom.event', { custom: 'data' });
 ```
 
 **REST API Endpoints:**
-- `GET /gf-js-embed/v1/form/{id}` - Retrieve form structure
-- `POST /gf-js-embed/v1/submit/{id}` - Submit form data
-- `GET /gf-js-embed/v1/assets/{id}` - Get form assets
-- `GET /gf-js-embed/v1/validate/{id}` - Validate field data
+- `GET /wp-json/gf-js-embed/v1/form/{id}` - Retrieve form structure
+- `POST /wp-json/gf-js-embed/v1/form/{id}/submit` - Submit form data
+- `GET /wp-json/gf-js-embed/v1/analytics/form/{id}` - Get form analytics
+- `POST /wp-json/gf-js-embed/v1/analytics/track` - Track analytics events
 
 **WordPress Hooks:**
 - `gf_js_embed_before_render` - Modify form before rendering
@@ -164,11 +151,8 @@ document.addEventListener('gfEmbedSubmitSuccess', (e) => {
 
 ### 🌐 Internationalization
 
-- Full translation support
-- RTL language compatibility
-- Locale-specific date/time formats
-- Currency localization
-- Custom translation files
+- Basic translation support
+- Plugin text domain ready for translations
 
 ## 📋 Requirements
 
@@ -207,7 +191,7 @@ document.addEventListener('gfEmbedSubmitSuccess', (e) => {
      data-gf-theme="dark" 
      data-gf-api-key="gfjs_xxxxxxxxxx">
 </div>
-<script src="https://your-site.com/gf-js-embed/v1/embed.js"></script>
+<script src="https://your-site.com/gf-js-embed/v1/gf-embed-sdk.js"></script>
 ```
 
 **Multiple Forms:**
@@ -215,7 +199,7 @@ document.addEventListener('gfEmbedSubmitSuccess', (e) => {
 <div data-gf-form="1" data-gf-theme="bootstrap"></div>
 <div data-gf-form="2" data-gf-theme="tailwind"></div>
 <div data-gf-form="3" data-gf-theme="glass"></div>
-<script src="https://your-site.com/gf-js-embed/v1/embed.js"></script>
+<script src="https://your-site.com/gf-js-embed/v1/gf-embed-sdk.js"></script>
 ```
 
 ## 📊 Use Cases
@@ -262,6 +246,6 @@ Special thanks to:
 
 ---
 
-**Version:** 0.3.1 | **Last Updated:** June 2025 | **Active Installs:** 1,000+
+**Version:** 0.4.0 | **Last Updated:** June 2025 | **Active Installs:** 1,000+
 
 ⭐ If you find this plugin useful, please [star it on GitHub](https://github.com/jezweb/js-gravity-forms-embed)!

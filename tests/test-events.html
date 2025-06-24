@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event System Test - Gravity Forms JS Embed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .controls {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .form-field {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        button.secondary {
+            background: #666;
+        }
+        button.secondary:hover {
+            background: #444;
+        }
+        .output {
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .event-log {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .event-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+        .event-item:last-child {
+            border-bottom: none;
+        }
+        .event-type {
+            font-weight: bold;
+            color: #0073aa;
+        }
+        .event-timestamp {
+            color: #666;
+            font-size: 11px;
+        }
+        .sample-form {
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-field {
+            flex: 1;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-active {
+            background: #46b450;
+        }
+        .status-inactive {
+            background: #dc3232;
+        }
+        .event-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #0073aa;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Event System Test - Gravity Forms JS Embed</h1>
+    
+    <div class="test-section">
+        <h2>Event System Status</h2>
+        <div class="controls">
+            <p>
+                <span class="status-indicator" id="event-system-status"></span>
+                Event System: <span id="event-system-text">Checking...</span>
+            </p>
+            <p>
+                <span class="status-indicator" id="debug-status"></span>
+                Debug Mode: <span id="debug-text">Disabled</span>
+            </p>
+            <button onclick="toggleDebugMode()">Toggle Debug Mode</button>
+            <button onclick="testEventSystem()">Test Event System</button>
+            <button onclick="clearEventLog()">Clear Event Log</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Event Statistics</h2>
+        <div class="event-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="total-events">0</div>
+                <div class="stat-label">Total Events</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="form-events">0</div>
+                <div class="stat-label">Form Events</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="field-events">0</div>
+                <div class="stat-label">Field Events</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="registered-forms">0</div>
+                <div class="stat-label">Registered Forms</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Sample Form for Testing</h2>
+        <form class="gf-embed-form sample-form" data-form-id="test-form-1" id="test-form-1">
+            <div class="form-row">
+                <div class="form-field">
+                    <label for="first-name">First Name</label>
+                    <input type="text" id="first-name" name="first_name" required>
+                </div>
+                <div class="form-field">
+                    <label for="last-name">Last Name</label>
+                    <input type="text" id="last-name" name="last_name" required>
+                </div>
+            </div>
+            
+            <div class="form-field">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-field">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone">
+            </div>
+            
+            <div class="form-field">
+                <label for="country">Country</label>
+                <select id="country" name="country">
+                    <option value="">Select Country</option>
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="AU">Australia</option>
+                </select>
+            </div>
+            
+            <div class="form-field">
+                <label for="message">Message</label>
+                <textarea id="message" name="message" rows="4"></textarea>
+            </div>
+            
+            <div class="form-field">
+                <label>
+                    <input type="checkbox" id="newsletter" name="newsletter" value="1">
+                    Subscribe to newsletter
+                </label>
+            </div>
+            
+            <button type="submit">Submit Form</button>
+            <button type="button" class="secondary" onclick="resetForm()">Reset Form</button>
+        </form>
+    </div>
+    
+    <div class="test-section">
+        <h2>Event Testing Controls</h2>
+        <div class="controls">
+            <button onclick="triggerCustomEvent()">Trigger Custom Event</button>
+            <button onclick="simulateFieldChanges()">Simulate Field Changes</button>
+            <button onclick="testFormValidation()">Test Form Validation</button>
+            <button onclick="testEventPrevention()">Test Event Prevention</button>
+            <button onclick="exportEventLog()">Export Event Log</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Live Event Log</h2>
+        <div id="event-log" class="event-log">
+            <div class="event-item">
+                <div class="event-timestamp">Ready</div>
+                <div>Event log will appear here...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Event Listeners</h2>
+        <div class="controls">
+            <label for="event-type-select">Event Type:</label>
+            <select id="event-type-select">
+                <option value="form.registered">form.registered</option>
+                <option value="form.beforeSubmit">form.beforeSubmit</option>
+                <option value="form.submitting">form.submitting</option>
+                <option value="field.changed">field.changed</option>
+                <option value="field.focused">field.focused</option>
+                <option value="field.blurred">field.blurred</option>
+                <option value="field.validated">field.validated</option>
+                <option value="page.ready">page.ready</option>
+                <option value="custom.test">custom.test</option>
+            </select>
+            <button onclick="addEventListener()">Add Listener</button>
+            <button onclick="removeEventListener()">Remove Listener</button>
+            <div id="listener-status" class="output">No custom listeners added</div>
+        </div>
+    </div>
+
+    <script>
+        let eventLog = [];
+        let eventStats = {
+            total: 0,
+            form: 0,
+            field: 0
+        };
+        let customListeners = [];
+        
+        // Wait for the event system to load
+        window.addEventListener('load', function() {
+            setTimeout(initializeTest, 1000);
+        });
+        
+        function initializeTest() {
+            // Check if event system is available
+            if (typeof GFEvents !== 'undefined') {
+                updateSystemStatus(true);
+                setupEventListeners();
+                updateStats();
+            } else {
+                updateSystemStatus(false);
+                console.error('GF Event System not found');
+            }
+        }
+        
+        function updateSystemStatus(active) {
+            const statusElement = document.getElementById('event-system-status');
+            const textElement = document.getElementById('event-system-text');
+            
+            if (active) {
+                statusElement.className = 'status-indicator status-active';
+                textElement.textContent = 'Active';
+                logEvent('system', 'Event system initialized successfully');
+            } else {
+                statusElement.className = 'status-indicator status-inactive';
+                textElement.textContent = 'Inactive';
+                logEvent('system', 'Event system not available');
+            }
+        }
+        
+        function setupEventListeners() {
+            if (typeof GFEvents === 'undefined') return;
+            
+            // Set up global event listeners for testing
+            GFEvents.on('*', function(eventData) {
+                logEvent(eventData.type, 'Event triggered', eventData);
+                updateEventStats(eventData.type);
+            });
+            
+            // Form-specific events
+            GFEvents.on('form.registered', function(eventData) {
+                logEvent('form.registered', `Form ${eventData.data.formId} registered`);
+            });
+            
+            GFEvents.on('form.beforeSubmit', function(eventData) {
+                logEvent('form.beforeSubmit', `Form ${eventData.data.formId} about to submit`);
+                // Example of preventing submission for testing
+                if (document.getElementById('prevent-submit') && document.getElementById('prevent-submit').checked) {
+                    eventData.preventDefault();
+                    logEvent('form.prevented', 'Form submission prevented for testing');
+                }
+            });
+            
+            GFEvents.on('field.changed', function(eventData) {
+                logEvent('field.changed', `Field ${eventData.data.fieldId} changed to: ${eventData.data.value}`);
+            });
+            
+            GFEvents.on('field.validated', function(eventData) {
+                const status = eventData.data.valid ? 'valid' : 'invalid';
+                logEvent('field.validated', `Field ${eventData.data.fieldId} validation: ${status}`);
+            });
+            
+            // Register the test form
+            const testForm = document.getElementById('test-form-1');
+            if (testForm) {
+                GFEvents.registerForm('test-form-1', testForm);
+            }
+        }
+        
+        function logEvent(type, message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const event = {
+                timestamp,
+                type,
+                message,
+                data
+            };
+            
+            eventLog.push(event);
+            
+            // Update live log
+            const logContainer = document.getElementById('event-log');
+            const eventItem = document.createElement('div');
+            eventItem.className = 'event-item';
+            eventItem.innerHTML = `
+                <div class="event-timestamp">${timestamp}</div>
+                <div><span class="event-type">${type}</span>: ${message}</div>
+                ${data ? `<div style="font-size: 11px; color: #666; margin-top: 5px;">${JSON.stringify(data, null, 2)}</div>` : ''}
+            `;
+            
+            logContainer.appendChild(eventItem);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 100 events in display
+            while (logContainer.children.length > 100) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        function updateEventStats(eventType) {
+            eventStats.total++;
+            
+            if (eventType.startsWith('form.')) {
+                eventStats.form++;
+            } else if (eventType.startsWith('field.')) {
+                eventStats.field++;
+            }
+            
+            updateStats();
+        }
+        
+        function updateStats() {
+            document.getElementById('total-events').textContent = eventStats.total;
+            document.getElementById('form-events').textContent = eventStats.form;
+            document.getElementById('field-events').textContent = eventStats.field;
+            
+            if (typeof GFEvents !== 'undefined') {
+                const forms = GFEvents.getAllForms();
+                document.getElementById('registered-forms').textContent = forms.length;
+            }
+        }
+        
+        function toggleDebugMode() {
+            if (typeof GFEvents === 'undefined') return;
+            
+            const debugStatus = document.getElementById('debug-status');
+            const debugText = document.getElementById('debug-text');
+            
+            const currentDebug = GFEvents.debug;
+            GFEvents.setDebug(!currentDebug);
+            
+            if (!currentDebug) {
+                debugStatus.className = 'status-indicator status-active';
+                debugText.textContent = 'Enabled';
+                logEvent('system', 'Debug mode enabled');
+            } else {
+                debugStatus.className = 'status-indicator status-inactive';
+                debugText.textContent = 'Disabled';
+                logEvent('system', 'Debug mode disabled');
+            }
+        }
+        
+        function testEventSystem() {
+            if (typeof GFEvents === 'undefined') {
+                logEvent('test', 'Event system not available');
+                return;
+            }
+            
+            logEvent('test', 'Starting event system test');
+            
+            // Test event registration and triggering
+            const testCallback = function(eventData) {
+                logEvent('test', 'Test event received', eventData.data);
+            };
+            
+            const listenerId = GFEvents.on('test.event', testCallback);
+            GFEvents.trigger('test.event', { message: 'Hello from test!' });
+            GFEvents.off('test.event', listenerId);
+            
+            logEvent('test', 'Event system test completed');
+        }
+        
+        function triggerCustomEvent() {
+            if (typeof GFEvents === 'undefined') return;
+            
+            const customData = {
+                timestamp: Date.now(),
+                random: Math.random(),
+                userAgent: navigator.userAgent
+            };
+            
+            GFEvents.trigger('custom.test', customData);
+            logEvent('custom', 'Custom event triggered manually');
+        }
+        
+        function simulateFieldChanges() {
+            const fields = ['first-name', 'last-name', 'email'];
+            const values = ['John', 'Doe', 'john.doe@example.com'];
+            
+            fields.forEach((fieldId, index) => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.value = values[index];
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+            
+            logEvent('test', 'Simulated field changes');
+        }
+        
+        function testFormValidation() {
+            const emailField = document.getElementById('email');
+            if (emailField) {
+                // Test invalid email
+                emailField.value = 'invalid-email';
+                emailField.dispatchEvent(new Event('blur', { bubbles: true }));
+                
+                setTimeout(() => {
+                    // Test valid email
+                    emailField.value = 'valid@example.com';
+                    emailField.dispatchEvent(new Event('blur', { bubbles: true }));
+                }, 1000);
+            }
+            
+            logEvent('test', 'Form validation test started');
+        }
+        
+        function testEventPrevention() {
+            // Add a checkbox to control form submission prevention
+            const form = document.getElementById('test-form-1');
+            const preventCheckbox = document.createElement('label');
+            preventCheckbox.innerHTML = `
+                <input type="checkbox" id="prevent-submit">
+                Prevent form submission (for testing)
+            `;
+            form.appendChild(preventCheckbox);
+            
+            logEvent('test', 'Event prevention test setup - try submitting the form with checkbox checked');
+        }
+        
+        function resetForm() {
+            document.getElementById('test-form-1').reset();
+            logEvent('form', 'Form reset');
+        }
+        
+        function clearEventLog() {
+            eventLog = [];
+            eventStats = { total: 0, form: 0, field: 0 };
+            document.getElementById('event-log').innerHTML = `
+                <div class="event-item">
+                    <div class="event-timestamp">Cleared</div>
+                    <div>Event log cleared</div>
+                </div>
+            `;
+            updateStats();
+        }
+        
+        function addEventListener() {
+            if (typeof GFEvents === 'undefined') return;
+            
+            const eventType = document.getElementById('event-type-select').value;
+            
+            const listener = function(eventData) {
+                logEvent('custom-listener', `Custom listener for ${eventType} triggered`);
+            };
+            
+            const id = GFEvents.on(eventType, listener);
+            customListeners.push({ eventType, id, listener });
+            
+            updateListenerStatus();
+            logEvent('test', `Added custom listener for ${eventType}`);
+        }
+        
+        function removeEventListener() {
+            if (typeof GFEvents === 'undefined' || customListeners.length === 0) return;
+            
+            const listener = customListeners.pop();
+            GFEvents.off(listener.eventType, listener.id);
+            
+            updateListenerStatus();
+            logEvent('test', `Removed custom listener for ${listener.eventType}`);
+        }
+        
+        function updateListenerStatus() {
+            const status = document.getElementById('listener-status');
+            if (customListeners.length === 0) {
+                status.textContent = 'No custom listeners added';
+            } else {
+                const types = customListeners.map(l => l.eventType).join(', ');
+                status.textContent = `Active listeners: ${types}`;
+            }
+        }
+        
+        function exportEventLog() {
+            const data = JSON.stringify(eventLog, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'gf-event-log.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            URL.revokeObjectURL(url);
+            logEvent('export', 'Event log exported');
+        }
+    </script>
+</body>
+</html>

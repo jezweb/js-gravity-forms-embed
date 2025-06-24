@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Analytics Test - Gravity Forms JS Embed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        input[type="text"], input[type="email"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        .form-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 4px;
+            min-height: 400px;
+        }
+        .analytics-output {
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .controls {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .metric-card {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #0073aa;
+        }
+        .metric-label {
+            color: #666;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enhanced Analytics Test - Gravity Forms JS Embed</h1>
+    
+    <div class="test-section">
+        <h2>Test Configuration</h2>
+        <div class="controls">
+            <label>
+                WordPress Site URL:
+                <input type="text" id="site-url" placeholder="https://your-site.com" value="">
+            </label>
+            <label>
+                Form ID:
+                <input type="text" id="form-id" placeholder="1" value="1">
+            </label>
+            <label>
+                API Key (optional):
+                <input type="text" id="api-key" placeholder="gfjs_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" value="">
+            </label>
+            <div>
+                <button onclick="loadForm()">Load Form</button>
+                <button onclick="testAnalyticsAPI()">Test Analytics API</button>
+                <button onclick="getAnalyticsSummary()">Get Analytics Summary</button>
+                <button onclick="clearAnalytics()">Clear Analytics</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Privacy Controls</h2>
+        <div class="controls">
+            <button onclick="setConsent(true)">Grant Analytics Consent</button>
+            <button onclick="setConsent(false)">Revoke Analytics Consent</button>
+            <button onclick="toggleDoNotTrack()">Toggle Do Not Track</button>
+            <button onclick="setPrivacyOptOut()">Set Privacy Opt-Out</button>
+            <div style="margin-top: 10px;">
+                <strong>Current Status:</strong>
+                <span id="privacy-status">Checking...</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Analytics Metrics</h2>
+        <div class="metric-grid" id="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="total-time">0s</div>
+                <div class="metric-label">Total Time</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="field-interactions">0</div>
+                <div class="metric-label">Field Interactions</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="current-page">1</div>
+                <div class="metric-label">Current Page</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="events-pending">0</div>
+                <div class="metric-label">Events Pending</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Form Display</h2>
+        <div id="form-container" class="form-container">
+            <p style="color: #999; text-align: center;">Click "Load Form" to display the form here</p>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Analytics Events Log</h2>
+        <div id="events-log" class="analytics-output">
+            <div>Analytics events will appear here...</div>
+        </div>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        let formLoaded = false;
+        let eventsLog = [];
+        
+        function getConfig() {
+            return {
+                siteUrl: document.getElementById('site-url').value || window.location.origin,
+                formId: document.getElementById('form-id').value || '1',
+                apiKey: document.getElementById('api-key').value
+            };
+        }
+        
+        function showResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            resultsDiv.appendChild(div);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+        
+        function logEvent(event) {
+            eventsLog.push({
+                timestamp: new Date().toISOString(),
+                event: event
+            });
+            
+            updateEventsLog();
+        }
+        
+        function updateEventsLog() {
+            const logDiv = document.getElementById('events-log');
+            logDiv.innerHTML = eventsLog.slice(-20).map(entry => 
+                `<div>[${new Date(entry.timestamp).toLocaleTimeString()}] ${JSON.stringify(entry.event)}</div>`
+            ).join('');
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            eventsLog = [];
+            updateEventsLog();
+        }
+        
+        async function loadForm() {
+            const config = getConfig();
+            const formContainer = document.getElementById('form-container');
+            
+            try {
+                showResult('Loading form...', 'info');
+                formContainer.innerHTML = '<p style="text-align: center;">Loading form...</p>';
+                
+                // Create form container with data attributes
+                const formDiv = document.createElement('div');
+                formDiv.setAttribute('data-gf-form', config.formId);
+                if (config.apiKey) {
+                    formDiv.setAttribute('data-gf-api-key', config.apiKey);
+                }
+                formContainer.innerHTML = '';
+                formContainer.appendChild(formDiv);
+                
+                // Load the embed script
+                const script = document.createElement('script');
+                script.src = `${config.siteUrl}/gf-js-embed/v1/embed.js`;
+                script.onload = () => {
+                    showResult('Form loaded successfully!', 'success');
+                    formLoaded = true;
+                    
+                    // Start monitoring analytics
+                    setTimeout(() => {
+                        startAnalyticsMonitoring();
+                    }, 1000);
+                };
+                script.onerror = () => {
+                    showResult('Failed to load embed script', 'error');
+                };
+                
+                // Remove existing script if present
+                const existingScript = document.querySelector('script[src*="gf-js-embed"]');
+                if (existingScript) {
+                    existingScript.remove();
+                }
+                
+                document.body.appendChild(script);
+                
+            } catch (error) {
+                showResult(`Error loading form: ${error.message}`, 'error');
+            }
+        }
+        
+        function startAnalyticsMonitoring() {
+            // Override console methods to capture analytics events
+            const originalConsole = console.log;
+            console.log = function(...args) {
+                if (args[0] && args[0].includes && args[0].includes('GF Analytics')) {
+                    logEvent({ type: 'console', message: args.join(' ') });
+                }
+                originalConsole.apply(console, args);
+            };
+            
+            // Monitor analytics if available
+            if (typeof GFEmbedAnalytics !== 'undefined') {
+                setInterval(updateMetrics, 1000);
+                showResult('Analytics monitoring started', 'success');
+            } else {
+                showResult('Analytics module not available', 'error');
+            }
+        }
+        
+        function updateMetrics() {
+            if (typeof GFEmbedAnalytics === 'undefined') return;
+            
+            try {
+                const summary = GFEmbedAnalytics.getSummary();
+                
+                document.getElementById('total-time').textContent = summary.totalTime + 's';
+                document.getElementById('field-interactions').textContent = 
+                    Object.values(summary.fieldInteractions || {}).reduce((a, b) => a + b, 0);
+                document.getElementById('current-page').textContent = summary.currentPage || 1;
+                
+                // Count pending events if possible
+                if (GFEmbedAnalytics.state && GFEmbedAnalytics.state.pendingEvents) {
+                    document.getElementById('events-pending').textContent = 
+                        GFEmbedAnalytics.state.pendingEvents.length;
+                }
+                
+                updatePrivacyStatus();
+            } catch (error) {
+                console.error('Error updating metrics:', error);
+            }
+        }
+        
+        function updatePrivacyStatus() {
+            const statusSpan = document.getElementById('privacy-status');
+            const doNotTrack = navigator.doNotTrack === '1' || window.doNotTrack === '1';
+            const consent = localStorage.getItem('gf-analytics-consent');
+            const optOut = window.gfEmbedPrivacyOptOut === true;
+            
+            let status = 'Tracking Enabled';
+            if (doNotTrack) status = 'Do Not Track Enabled';
+            else if (consent === 'false') status = 'Consent Revoked';
+            else if (optOut) status = 'Privacy Opt-Out';
+            
+            statusSpan.textContent = status;
+            statusSpan.style.color = status === 'Tracking Enabled' ? 'green' : 'red';
+        }
+        
+        async function testAnalyticsAPI() {
+            const config = getConfig();
+            
+            try {
+                showResult('Testing analytics API...', 'info');
+                
+                const response = await fetch(`${config.siteUrl}/wp-json/gf-embed/v1/analytics/track`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({
+                        event_type: 'field_interaction',
+                        form_id: config.formId,
+                        data: {
+                            field_id: 'test_field',
+                            interaction_type: 'focus'
+                        }
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showResult('Analytics API test successful!', 'success');
+                    logEvent({ type: 'api_test', result: result });
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+            } catch (error) {
+                showResult(`Analytics API test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function getAnalyticsSummary() {
+            if (typeof GFEmbedAnalytics === 'undefined') {
+                showResult('Analytics not available', 'error');
+                return;
+            }
+            
+            try {
+                const summary = GFEmbedAnalytics.getSummary();
+                showResult('Analytics summary retrieved', 'success');
+                logEvent({ type: 'summary', data: summary });
+            } catch (error) {
+                showResult(`Error getting summary: ${error.message}`, 'error');
+            }
+        }
+        
+        function clearAnalytics() {
+            localStorage.removeItem('gf-analytics-consent');
+            document.cookie = 'gf-analytics-consent=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+            showResult('Analytics data cleared', 'info');
+        }
+        
+        function setConsent(consent) {
+            if (typeof GFEmbedAnalytics !== 'undefined') {
+                GFEmbedAnalytics.setConsent(consent);
+                showResult(`Analytics consent ${consent ? 'granted' : 'revoked'}`, 'info');
+            } else {
+                localStorage.setItem('gf-analytics-consent', consent ? 'true' : 'false');
+                showResult(`Consent ${consent ? 'granted' : 'revoked'} (analytics not loaded)`, 'info');
+            }
+            updatePrivacyStatus();
+        }
+        
+        function toggleDoNotTrack() {
+            // Note: Can't actually set DNT from JavaScript, just simulate
+            showResult('Do Not Track cannot be set programmatically. Check browser settings.', 'info');
+            updatePrivacyStatus();
+        }
+        
+        function setPrivacyOptOut() {
+            window.gfEmbedPrivacyOptOut = !window.gfEmbedPrivacyOptOut;
+            showResult(`Privacy opt-out ${window.gfEmbedPrivacyOptOut ? 'enabled' : 'disabled'}`, 'info');
+            updatePrivacyStatus();
+        }
+        
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentOrigin = window.location.origin;
+            if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+                document.getElementById('site-url').value = currentOrigin;
+            }
+            updatePrivacyStatus();
+        });
+        
+        // Update metrics periodically
+        setInterval(updateMetrics, 2000);
+    </script>
+</body>
+</html>

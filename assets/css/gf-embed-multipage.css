@@ -1,0 +1,314 @@
+/**
+ * Multi-Page Forms Styles
+ */
+
+/* Progress Indicators */
+.gf-multipage-progress {
+    margin-bottom: 30px;
+}
+
+/* Progress Bar Style */
+.gf-progress-bar {
+    position: relative;
+    background: #f0f0f0;
+    height: 30px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.gf-progress-fill {
+    background: #0073aa;
+    height: 100%;
+    transition: width 0.3s ease;
+    background-image: linear-gradient(
+        45deg,
+        rgba(255,255,255,.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255,255,255,.15) 50%,
+        rgba(255,255,255,.15) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 40px 40px;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+    0% {
+        background-position: 40px 0;
+    }
+    100% {
+        background-position: 0 0;
+    }
+}
+
+.gf-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #333;
+    font-weight: 600;
+    font-size: 14px;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+}
+
+/* Progress Steps Style */
+.gf-progress-steps {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.gf-progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #ddd;
+    z-index: 0;
+}
+
+.gf-progress-step {
+    position: relative;
+    text-align: center;
+    flex: 1;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.gf-progress-step .step-number {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    font-weight: 600;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.gf-progress-step.completed .step-number {
+    background: #46b450;
+    border-color: #46b450;
+    color: #fff;
+}
+
+.gf-progress-step.active .step-number {
+    background: #0073aa;
+    border-color: #0073aa;
+    color: #fff;
+    transform: scale(1.1);
+}
+
+.gf-progress-step .step-name {
+    display: block;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+.gf-progress-step.active .step-name {
+    color: #0073aa;
+    font-weight: 600;
+}
+
+.gf-progress-step.completed .step-name {
+    color: #46b450;
+}
+
+/* Navigation */
+.gf-multipage-navigation {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.gf-page-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.gf-previous-button,
+.gf-next-button,
+.gf-submit-button {
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.gf-previous-button {
+    background: #666;
+    color: #fff;
+}
+
+.gf-previous-button:hover {
+    background: #555;
+}
+
+.gf-next-button,
+.gf-submit-button {
+    background: #0073aa;
+    color: #fff;
+    margin-left: auto;
+}
+
+.gf-next-button:hover,
+.gf-submit-button:hover {
+    background: #005a87;
+}
+
+.gf-submit-button {
+    background: #46b450;
+}
+
+.gf-submit-button:hover {
+    background: #389e41;
+}
+
+/* Validation Errors */
+.gfield_error {
+    background: #fef8f8;
+    border: 1px solid #e4b9b9;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.gfield_error .validation_message {
+    color: #a94442;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* Page Transitions */
+.gfield {
+    transition: opacity 0.3s ease;
+}
+
+.gfield[style*="display: none"] {
+    opacity: 0;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .gf-progress-steps {
+        flex-wrap: wrap;
+    }
+    
+    .gf-progress-step {
+        min-width: 80px;
+        margin-bottom: 10px;
+    }
+    
+    .gf-progress-step .step-name {
+        font-size: 11px;
+    }
+    
+    .gf-page-navigation {
+        flex-direction: column;
+    }
+    
+    .gf-previous-button,
+    .gf-next-button,
+    .gf-submit-button {
+        width: 100%;
+        margin: 5px 0;
+    }
+}
+
+/* Auto-save Indicator */
+.gf-autosave-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #333;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 9999;
+}
+
+.gf-autosave-indicator.show {
+    opacity: 0.9;
+}
+
+/* Loading State */
+.gf-multipage-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.gf-multipage-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 100;
+}
+
+.gf-multipage-loading::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #0073aa;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 101;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Resume Progress Notification */
+.gf-resume-notification {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.gf-resume-notification button {
+    background: #856404;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.gf-resume-notification button:hover {
+    background: #704502;
+}

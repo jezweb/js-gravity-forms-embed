@@ -63,6 +63,22 @@ class GF_JS_Embed_API {
             'callback' => [$this, 'get_form_assets'],
             'permission_callback' => [$this, 'check_permissions']
         ]);
+        
+        // Track analytics events
+        register_rest_route($namespace, '/analytics/track', [
+            'methods' => 'POST',
+            'callback' => [$this, 'track_analytics_event'],
+            'permission_callback' => [$this, 'check_permissions']
+        ]);
+        
+        // Get analytics data
+        register_rest_route($namespace, '/analytics/(?P<id>\d+)', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_analytics_data'],
+            'permission_callback' => function() {
+                return current_user_can('manage_options');
+            }
+        ]);
     }
     
     /**
@@ -83,24 +99,99 @@ class GF_JS_Embed_API {
         // Set CORS headers
         $this->set_cors_headers();
         
-        // Enhanced rate limiting
-        $identifier = $_SERVER['REMOTE_ADDR'];
+        // Rate limiting check
+        $identifier = $this->get_rate_limit_identifier($request);
+        $endpoint = $this->get_endpoint_from_request($request);
         $form_id = $request->get_param('id');
-        if (!GF_JS_Embed_Security::check_advanced_rate_limit($identifier, $form_id)) {
-            return new WP_Error('rate_limit_exceeded', __('Rate limit exceeded. Please try again later.', 'gf-js-embed'), ['status' => 429]);
+        
+        $rate_limiter = GF_JS_Embed_Rate_Limiter::get_instance();
+        $rate_limit_result = $rate_limiter->check_rate_limit($identifier, $endpoint, $form_id);
+        
+        // Add rate limit headers
+        $rate_limiter->add_rate_limit_headers($rate_limit_result);
+        
+        if (!$rate_limit_result['allowed']) {
+            return new WP_Error('rate_limit_exceeded', 
+                sprintf(__('Rate limit exceeded. Try again in %d seconds.', 'gf-js-embed'), 
+                    $rate_limit_result['retry_after'] ?? 60), 
+                ['status' => 429]
+            );
         }
         
-        // API key validation if provided
-        $api_key = $request->get_header('X-API-Key');
-        if ($api_key && $form_id && !GF_JS_Embed_Security::validate_api_key($api_key, $form_id)) {
-            GF_JS_Embed_Security::log_security_event('invalid_api_key', [
-                'form_id' => $form_id,
-                'provided_key' => substr($api_key, 0, 8) . '...'
-            ]);
-            return new WP_Error('invalid_api_key', __('Invalid API key', 'gf-js-embed'), ['status' => 401]);
+        // API key validation
+        $form_id = $request->get_param('id');
+        if ($form_id) {
+            $settings = GF_JS_Embed_Admin::get_form_settings($form_id);
+            $api_key = $request->get_header('X-API-Key') ?: $request->get_param('api_key');
+            
+            // If form has API key configured, it's required
+            if (!empty($settings['api_key'])) {
+                if (!$api_key) {
+                    return new WP_Error('missing_api_key', __('API key required', 'gf-js-embed'), ['status' => 401]);
+                }
+                
+                if (!GF_JS_Embed_Security::validate_api_key($api_key, $form_id)) {
+                    GF_JS_Embed_Security::log_security_event('invalid_api_key', [
+                        'form_id' => $form_id,
+                        'provided_key' => substr($api_key, 0, 8) . '...'
+                    ]);
+                    return new WP_Error('invalid_api_key', __('Invalid API key', 'gf-js-embed'), ['status' => 401]);
+                }
+            }
         }
         
         return true;
+    }
+    
+    /**
+     * Get rate limit identifier from request
+     */
+    private function get_rate_limit_identifier($request) {
+        // Use multiple factors for identification
+        $factors = [
+            $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+            $_SERVER['HTTP_USER_AGENT'] ?? '',
+            $_SERVER['HTTP_ORIGIN'] ?? $_SERVER['HTTP_REFERER'] ?? ''
+        ];
+        
+        // Check for emergency bypass first
+        $rate_limiter = GF_JS_Embed_Rate_Limiter::get_instance();
+        if ($rate_limiter->has_emergency_bypass($_SERVER['REMOTE_ADDR'])) {
+            return 'bypass_' . $_SERVER['REMOTE_ADDR'];
+        }
+        
+        // Use API key if available for more lenient limits
+        $api_key = $request->get_header('X-API-Key') ?: $request->get_param('api_key');
+        if ($api_key) {
+            $factors[] = 'api_' . substr(hash('sha256', $api_key), 0, 16);
+        }
+        
+        // Create composite identifier
+        return hash('sha256', implode('|', array_filter($factors)));
+    }
+    
+    /**
+     * Get endpoint identifier for rate limiting
+     */
+    private function get_endpoint_from_request($request) {
+        $route = $request->get_route();
+        
+        // Normalize route for rate limiting
+        $endpoint_map = [
+            '/gf-embed/v1/form/' => '/form/',
+            '/gf-embed/v1/submit/' => '/submit/',
+            '/gf-embed/v1/assets/' => '/assets/',
+            '/gf-embed/v1/analytics/track' => '/analytics/track',
+            '/gf-embed/v1/analytics/' => '/analytics/'
+        ];
+        
+        foreach ($endpoint_map as $pattern => $normalized) {
+            if (strpos($route, $pattern) !== false) {
+                return $normalized;
+            }
+        }
+        
+        return $route;
     }
     
     /**
@@ -344,8 +435,9 @@ class GF_JS_Embed_API {
                 ], 500);
             }
             
-            // Track submission
-            GF_JS_Embed_Analytics::track_submission($form_id);
+            // Track submission with entry ID
+            $domain = parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_HOST);
+            GF_JS_Embed_Analytics::track_submission($form_id, $domain, $entry_id);
             
             // Get confirmation
             $confirmation = GFFormDisplay::get_confirmation($form, $entry);
@@ -405,6 +497,124 @@ class GF_JS_Embed_API {
                 'startOfWeek' => get_option('start_of_week'),
                 'currency' => GFCommon::get_currency()
             ]
+        ]);
+    }
+    
+    /**
+     * Track analytics event
+     */
+    public function track_analytics_event($request) {
+        $event_type = $request->get_param('event_type');
+        $form_id = $request->get_param('form_id');
+        $data = $request->get_param('data') ?? [];
+        
+        // Validate required parameters
+        if (!$event_type || !$form_id) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => __('Missing required parameters', 'gf-js-embed')
+            ], 400);
+        }
+        
+        // Process different event types
+        switch ($event_type) {
+            case 'field_interaction':
+                GF_JS_Embed_Analytics::track_field_interaction(
+                    $form_id,
+                    $data['field_id'],
+                    $data['interaction_type'],
+                    $data['time_spent'] ?? 0
+                );
+                break;
+                
+            case 'field_error':
+                GF_JS_Embed_Analytics::track_field_error(
+                    $form_id,
+                    $data['field_id'],
+                    $data['error_type'],
+                    $data['error_message'] ?? ''
+                );
+                break;
+                
+            case 'page_progression':
+                GF_JS_Embed_Analytics::track_page_progression(
+                    $form_id,
+                    $data['page_number'],
+                    $data['time_spent'] ?? 0,
+                    $data['completed'] ?? false
+                );
+                break;
+                
+            default:
+                return new WP_REST_Response([
+                    'success' => false,
+                    'message' => __('Invalid event type', 'gf-js-embed')
+                ], 400);
+        }
+        
+        return new WP_REST_Response([
+            'success' => true,
+            'message' => __('Event tracked successfully', 'gf-js-embed')
+        ]);
+    }
+    
+    /**
+     * Get analytics data
+     */
+    public function get_analytics_data($request) {
+        $form_id = $request->get_param('id');
+        $date_from = $request->get_param('date_from');
+        $date_to = $request->get_param('date_to');
+        $metric = $request->get_param('metric') ?? 'all';
+        
+        if (!GFAPI::form_exists($form_id)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'message' => __('Form not found', 'gf-js-embed')
+            ], 404);
+        }
+        
+        $analytics = [];
+        
+        switch ($metric) {
+            case 'overview':
+                $analytics = GF_JS_Embed_Analytics::get_enhanced_analytics($form_id, $date_from, $date_to);
+                break;
+                
+            case 'heatmap':
+                $analytics = GF_JS_Embed_Analytics::get_field_heatmap($form_id, $date_from, $date_to);
+                break;
+                
+            case 'timeseries':
+                $days = $request->get_param('days') ?? 30;
+                $type = $request->get_param('type') ?? 'views';
+                $analytics = GF_JS_Embed_Database::get_time_series($form_id, $type, $days);
+                break;
+                
+            case 'interactions':
+                $analytics = GF_JS_Embed_Database::get_field_interactions($form_id, $date_from, $date_to);
+                break;
+                
+            case 'errors':
+                $analytics = GF_JS_Embed_Database::get_field_errors($form_id, $date_from, $date_to);
+                break;
+                
+            case 'all':
+            default:
+                $analytics = [
+                    'overview' => GF_JS_Embed_Analytics::get_enhanced_analytics($form_id, $date_from, $date_to),
+                    'heatmap' => GF_JS_Embed_Analytics::get_field_heatmap($form_id, $date_from, $date_to),
+                    'timeseries' => [
+                        'views' => GF_JS_Embed_Database::get_time_series($form_id, 'views', 30),
+                        'submissions' => GF_JS_Embed_Database::get_time_series($form_id, 'submissions', 30)
+                    ]
+                ];
+                break;
+        }
+        
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $analytics
         ]);
     }
 }

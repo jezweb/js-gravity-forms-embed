@@ -58,6 +58,7 @@ class GF_JS_Embed_Uninstall {
     private static function remove_tables() {
         global $wpdb;
         
+        // Legacy tables
         $tables = [
             $wpdb->prefix . 'gf_js_embed_analytics',
             $wpdb->prefix . 'gf_js_embed_api_logs'
@@ -66,6 +67,10 @@ class GF_JS_Embed_Uninstall {
         foreach ($tables as $table) {
             $wpdb->query("DROP TABLE IF EXISTS $table");
         }
+        
+        // New analytics tables
+        require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-database.php';
+        GF_JS_Embed_Database::drop_tables();
     }
     
     /**

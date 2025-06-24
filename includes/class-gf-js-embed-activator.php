@@ -30,8 +30,20 @@ class GF_JS_Embed_Activator {
         // Create database tables if needed
         self::create_tables();
         
+        // Create new analytics tables
+        require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-database.php';
+        GF_JS_Embed_Database::get_instance()->create_tables();
+        
         // Set default options
         self::set_default_options();
+        
+        // Initialize rate limiter
+        require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-rate-limiter.php';
+        GF_JS_Embed_Rate_Limiter::get_instance();
+        
+        // Initialize event system
+        require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-events.php';
+        GF_JS_Embed_Events::get_instance();
         
         // Create upload directory
         self::create_upload_directory();
@@ -99,8 +111,17 @@ class GF_JS_Embed_Activator {
         add_option('gf_js_embed_settings', [
             'enable_analytics' => true,
             'enable_api_logs' => false,
-            'rate_limit_requests' => 60,
-            'rate_limit_window' => 60,
+            'enable_rate_limiting' => true,
+            'enable_csrf_protection' => true,
+            'rate_limit_form_requests' => 100,
+            'rate_limit_form_window' => 60,
+            'rate_limit_submit_requests' => 10,
+            'rate_limit_submit_window' => 60,
+            'rate_limit_analytics_requests' => 200,
+            'rate_limit_analytics_window' => 60,
+            'rate_limit_assets_requests' => 50,
+            'rate_limit_assets_window' => 60,
+            'log_rate_limit_violations' => true,
             'debug_mode' => false
         ]);
         
@@ -140,6 +161,10 @@ class GF_JS_Embed_Activator {
         
         if (!wp_next_scheduled('gf_js_embed_analytics_aggregate')) {
             wp_schedule_event(time(), 'hourly', 'gf_js_embed_analytics_aggregate');
+        }
+        
+        if (!wp_next_scheduled('gf_js_embed_analytics_cleanup')) {
+            wp_schedule_event(time(), 'daily', 'gf_js_embed_analytics_cleanup');
         }
     }
 }

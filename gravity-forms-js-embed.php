@@ -56,6 +56,11 @@ function gf_js_embed_load_plugin() {
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-admin.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-security.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-analytics.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-database.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-events.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-csrf.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-multipage.php';
+    require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-conditional-logic.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-styling.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-i18n.php';
     require_once GF_JS_EMBED_PLUGIN_DIR . 'includes/class-gf-js-embed-testing.php';

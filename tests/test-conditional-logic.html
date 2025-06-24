@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conditional Logic Test - Gravity Forms JS Embed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .controls {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .form-field {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        button.secondary {
+            background: #666;
+        }
+        button.secondary:hover {
+            background: #444;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-active {
+            background: #46b450;
+        }
+        .status-inactive {
+            background: #dc3232;
+        }
+        /* Sample form styles */
+        .sample-form {
+            background: #fff;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .gfield {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        .gfield.gf-hidden {
+            display: none;
+        }
+        .gfield.gf-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .gfield_required {
+            color: #dc3232;
+        }
+        /* Field states display */
+        .field-states {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .field-state {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .field-state h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .state-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 14px;
+        }
+        .state-value {
+            font-weight: bold;
+        }
+        .state-true {
+            color: #46b450;
+        }
+        .state-false {
+            color: #dc3232;
+        }
+        /* Event log */
+        .event-log {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        .log-timestamp {
+            color: #666;
+            font-size: 11px;
+        }
+        .log-type {
+            font-weight: bold;
+            color: #0073aa;
+        }
+        /* Rules display */
+        .rules-display {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+        /* Testing scenarios */
+        .scenario {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .scenario h4 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Conditional Logic Test - Gravity Forms JS Embed</h1>
+    
+    <div class="test-section">
+        <h2>Conditional Logic System Status</h2>
+        <div class="controls">
+            <p>
+                <span class="status-indicator" id="logic-status"></span>
+                Conditional Logic: <span id="logic-text">Checking...</span>
+            </p>
+            <p>
+                <span class="status-indicator" id="debug-status"></span>
+                Debug Mode: <span id="debug-text">Disabled</span>
+            </p>
+            <button onclick="toggleDebugMode()">Toggle Debug Mode</button>
+            <button onclick="testConditionalLogic()">Test System</button>
+            <button onclick="clearEventLog()">Clear Log</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Sample Form with Conditional Logic</h2>
+        <form class="gf-embed-form sample-form" data-form-id="conditional-test-1" id="conditional-test-form">
+            <!-- Master Control Field -->
+            <div class="gfield" id="field_conditional-test-1_1">
+                <label for="show-options">Show Additional Options? <span class="gfield_required">*</span></label>
+                <select id="show-options" name="show_options" required>
+                    <option value="">Select...</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            
+            <!-- Conditional Fields -->
+            <div class="gfield" id="field_conditional-test-1_2">
+                <label for="user-type">User Type</label>
+                <select id="user-type" name="user_type">
+                    <option value="">Select...</option>
+                    <option value="individual">Individual</option>
+                    <option value="business">Business</option>
+                    <option value="nonprofit">Non-Profit</option>
+                </select>
+            </div>
+            
+            <div class="gfield" id="field_conditional-test-1_3">
+                <label for="business-name">Business Name</label>
+                <input type="text" id="business-name" name="business_name">
+            </div>
+            
+            <div class="gfield" id="field_conditional-test-1_4">
+                <label for="quantity">Quantity</label>
+                <input type="number" id="quantity" name="quantity" min="1" value="1">
+            </div>
+            
+            <div class="gfield" id="field_conditional-test-1_5">
+                <label for="bulk-discount">Bulk Discount Code</label>
+                <input type="text" id="bulk-discount" name="bulk_discount" placeholder="Enter code for orders over 10">
+            </div>
+            
+            <div class="gfield" id="field_conditional-test-1_6">
+                <label for="comments">Additional Comments</label>
+                <textarea id="comments" name="comments" rows="3"></textarea>
+            </div>
+            
+            <div class="gfield" id="field_conditional-test-1_7">
+                <label>
+                    <input type="checkbox" name="urgent" value="1">
+                    Mark as Urgent
+                </label>
+            </div>
+            
+            <div class="gfield" id="field_conditional-test-1_8">
+                <label for="urgent-reason">Reason for Urgency</label>
+                <input type="text" id="urgent-reason" name="urgent_reason">
+            </div>
+            
+            <button type="submit">Submit Form</button>
+        </form>
+        
+        <!-- Set up form config with conditional logic -->
+        <script>
+            document.getElementById('conditional-test-form').dataset.formConfig = JSON.stringify({
+                conditional_logic: {
+                    enabled: true,
+                    rules: [
+                        {
+                            id: 'rule_1',
+                            field_id: 2,
+                            action: 'show',
+                            logic_type: 'all',
+                            conditions: [
+                                {
+                                    field_id: 1,
+                                    operator: 'is',
+                                    value: 'yes'
+                                }
+                            ]
+                        },
+                        {
+                            id: 'rule_2',
+                            field_id: 3,
+                            action: 'show',
+                            logic_type: 'all',
+                            conditions: [
+                                {
+                                    field_id: 2,
+                                    operator: 'is',
+                                    value: 'business'
+                                }
+                            ]
+                        },
+                        {
+                            id: 'rule_3',
+                            field_id: 5,
+                            action: 'show',
+                            logic_type: 'all',
+                            conditions: [
+                                {
+                                    field_id: 4,
+                                    operator: 'greater_than',
+                                    value: '10'
+                                }
+                            ]
+                        },
+                        {
+                            id: 'rule_4',
+                            field_id: 8,
+                            action: 'show',
+                            logic_type: 'all',
+                            conditions: [
+                                {
+                                    field_id: 7,
+                                    operator: 'is',
+                                    value: '1'
+                                }
+                            ]
+                        },
+                        {
+                            id: 'rule_5',
+                            field_id: 6,
+                            action: 'require',
+                            logic_type: 'any',
+                            conditions: [
+                                {
+                                    field_id: 7,
+                                    operator: 'is',
+                                    value: '1'
+                                },
+                                {
+                                    field_id: 2,
+                                    operator: 'is',
+                                    value: 'business'
+                                }
+                            ]
+                        }
+                    ],
+                    dependencies: {
+                        1: [2],
+                        2: [3, 6],
+                        4: [5],
+                        7: [6, 8]
+                    },
+                    initial_states: {
+                        1: { visible: true, enabled: true, required: true },
+                        2: { visible: false, enabled: true, required: false },
+                        3: { visible: false, enabled: true, required: false },
+                        4: { visible: true, enabled: true, required: false },
+                        5: { visible: false, enabled: true, required: false },
+                        6: { visible: true, enabled: true, required: false },
+                        7: { visible: true, enabled: true, required: false },
+                        8: { visible: false, enabled: true, required: false }
+                    }
+                }
+            });
+        </script>
+    </div>
+    
+    <div class="test-section">
+        <h2>Field States Monitor</h2>
+        <div class="field-states" id="field-states">
+            <!-- Field states will be displayed here -->
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Testing Scenarios</h2>
+        <div class="controls">
+            <div class="scenario">
+                <h4>Scenario 1: Show Options Flow</h4>
+                <p>Select "Yes" in Show Additional Options to reveal User Type field</p>
+                <button onclick="runScenario1()">Run Scenario</button>
+            </div>
+            
+            <div class="scenario">
+                <h4>Scenario 2: Business Flow</h4>
+                <p>Complete business selection to show business name field</p>
+                <button onclick="runScenario2()">Run Scenario</button>
+            </div>
+            
+            <div class="scenario">
+                <h4>Scenario 3: Bulk Order</h4>
+                <p>Enter quantity > 10 to show bulk discount field</p>
+                <button onclick="runScenario3()">Run Scenario</button>
+            </div>
+            
+            <div class="scenario">
+                <h4>Scenario 4: Complex Logic</h4>
+                <p>Test multiple conditions with OR logic</p>
+                <button onclick="runScenario4()">Run Scenario</button>
+            </div>
+            
+            <button onclick="resetForm()">Reset Form</button>
+            <button onclick="showAllFields()">Force Show All Fields</button>
+            <button onclick="evaluateCurrentState()">Evaluate Current State</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Active Rules</h2>
+        <div id="rules-display" class="rules-display">Loading rules...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Event Log</h2>
+        <div id="event-log" class="event-log">
+            <div class="log-item">
+                <div class="log-timestamp">Ready</div>
+                <div>Conditional logic event log will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let eventLog = [];
+        let logicInstance = null;
+        
+        // Wait for conditional logic system to load
+        window.addEventListener('load', function() {
+            setTimeout(initializeConditionalLogicTest, 1000);
+        });
+        
+        function initializeConditionalLogicTest() {
+            // Check if conditional logic system is available
+            if (typeof GFConditionalLogic !== 'undefined') {
+                logicInstance = GFConditionalLogic;
+                updateLogicStatus(true);
+                setupEventListeners();
+                displayRules();
+                updateFieldStates();
+                
+                // Register the test form
+                if (typeof GFEvents !== 'undefined') {
+                    const testForm = document.getElementById('conditional-test-form');
+                    if (testForm) {
+                        GFEvents.registerForm('conditional-test-1', testForm);
+                    }
+                }
+            } else {
+                updateLogicStatus(false);
+                logEvent('error', 'Conditional logic system not found');
+            }
+        }
+        
+        function updateLogicStatus(active) {
+            const statusElement = document.getElementById('logic-status');
+            const textElement = document.getElementById('logic-text');
+            
+            if (active) {
+                statusElement.className = 'status-indicator status-active';
+                textElement.textContent = 'Active';
+                logEvent('success', 'Conditional logic system initialized');
+            } else {
+                statusElement.className = 'status-indicator status-inactive';
+                textElement.textContent = 'Inactive';
+                logEvent('error', 'Conditional logic system not available');
+            }
+        }
+        
+        function setupEventListeners() {
+            if (typeof GFEvents === 'undefined') return;
+            
+            // Listen for conditional logic events
+            GFEvents.on('conditionalLogic.initialized', function(eventData) {
+                logEvent('logic', 'Conditional logic initialized with ' + eventData.data.rulesCount + ' rules');
+            });
+            
+            GFEvents.on('conditionalLogic.statesChanged', function(eventData) {
+                logEvent('logic', 'Field states changed', eventData.data.states);
+                updateFieldStates();
+            });
+            
+            GFEvents.on('field.changed', function(eventData) {
+                logEvent('field', 'Field ' + eventData.data.fieldId + ' changed to: ' + eventData.data.value);
+            });
+        }
+        
+        function toggleDebugMode() {
+            if (!logicInstance) return;
+            
+            const debugStatus = document.getElementById('debug-status');
+            const debugText = document.getElementById('debug-text');
+            
+            const currentDebug = logicInstance.debug;
+            logicInstance.setDebug(!currentDebug);
+            
+            if (!currentDebug) {
+                debugStatus.className = 'status-indicator status-active';
+                debugText.textContent = 'Enabled';
+                logEvent('setting', 'Debug mode enabled');
+            } else {
+                debugStatus.className = 'status-indicator status-inactive';
+                debugText.textContent = 'Disabled';
+                logEvent('setting', 'Debug mode disabled');
+            }
+        }
+        
+        function testConditionalLogic() {
+            logEvent('test', 'Starting conditional logic system test');
+            
+            // Test visibility checks
+            if (logicInstance) {
+                const isField2Visible = logicInstance.isFieldVisible('conditional-test-1', 2);
+                logEvent('test', 'Field 2 visible: ' + isField2Visible);
+                
+                const isField3Visible = logicInstance.isFieldVisible('conditional-test-1', 3);
+                logEvent('test', 'Field 3 visible: ' + isField3Visible);
+            }
+            
+            logEvent('test', 'Conditional logic system test completed');
+        }
+        
+        function displayRules() {
+            const rulesDisplay = document.getElementById('rules-display');
+            const formConfig = JSON.parse(document.getElementById('conditional-test-form').dataset.formConfig);
+            
+            if (formConfig && formConfig.conditional_logic) {
+                const rules = formConfig.conditional_logic.rules;
+                rulesDisplay.textContent = JSON.stringify(rules, null, 2);
+            }
+        }
+        
+        function updateFieldStates() {
+            if (!logicInstance) return;
+            
+            const states = logicInstance.getFieldStates('conditional-test-1');
+            const container = document.getElementById('field-states');
+            
+            let html = '';
+            
+            Object.entries(states).forEach(([fieldId, state]) => {
+                html += `
+                <div class="field-state">
+                    <h4>Field ${fieldId}</h4>
+                    <div class="state-item">
+                        <span>Visible:</span>
+                        <span class="state-value ${state.visible ? 'state-true' : 'state-false'}">${state.visible}</span>
+                    </div>
+                    <div class="state-item">
+                        <span>Enabled:</span>
+                        <span class="state-value ${state.enabled ? 'state-true' : 'state-false'}">${state.enabled}</span>
+                    </div>
+                    <div class="state-item">
+                        <span>Required:</span>
+                        <span class="state-value ${state.required ? 'state-true' : 'state-false'}">${state.required}</span>
+                    </div>
+                </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function runScenario1() {
+            logEvent('scenario', 'Running Scenario 1: Show Options Flow');
+            resetForm();
+            
+            setTimeout(() => {
+                document.getElementById('show-options').value = 'yes';
+                document.getElementById('show-options').dispatchEvent(new Event('change', { bubbles: true }));
+            }, 500);
+        }
+        
+        function runScenario2() {
+            logEvent('scenario', 'Running Scenario 2: Business Flow');
+            resetForm();
+            
+            setTimeout(() => {
+                document.getElementById('show-options').value = 'yes';
+                document.getElementById('show-options').dispatchEvent(new Event('change', { bubbles: true }));
+            }, 500);
+            
+            setTimeout(() => {
+                document.getElementById('user-type').value = 'business';
+                document.getElementById('user-type').dispatchEvent(new Event('change', { bubbles: true }));
+            }, 1000);
+        }
+        
+        function runScenario3() {
+            logEvent('scenario', 'Running Scenario 3: Bulk Order');
+            resetForm();
+            
+            setTimeout(() => {
+                document.getElementById('quantity').value = '15';
+                document.getElementById('quantity').dispatchEvent(new Event('change', { bubbles: true }));
+            }, 500);
+        }
+        
+        function runScenario4() {
+            logEvent('scenario', 'Running Scenario 4: Complex Logic');
+            resetForm();
+            
+            setTimeout(() => {
+                document.getElementById('urgent').checked = true;
+                document.getElementById('urgent').dispatchEvent(new Event('change', { bubbles: true }));
+            }, 500);
+        }
+        
+        function resetForm() {
+            document.getElementById('conditional-test-form').reset();
+            
+            // Trigger change events to reset conditional logic
+            const selects = document.querySelectorAll('select');
+            selects.forEach(select => {
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+            
+            logEvent('form', 'Form reset');
+        }
+        
+        function showAllFields() {
+            const fields = document.querySelectorAll('.gfield');
+            fields.forEach(field => {
+                field.style.display = '';
+                field.classList.remove('gf-hidden', 'gf-disabled');
+            });
+            
+            logEvent('debug', 'Forced all fields to show');
+        }
+        
+        function evaluateCurrentState() {
+            if (logicInstance) {
+                logicInstance.reevaluate('conditional-test-1');
+                logEvent('evaluate', 'Triggered re-evaluation of all rules');
+            }
+        }
+        
+        function logEvent(type, message, data = null) {
+            const timestamp = new Date().toLocaleTimeString();
+            const event = {
+                timestamp,
+                type,
+                message,
+                data
+            };
+            
+            eventLog.push(event);
+            
+            // Update display
+            const logContainer = document.getElementById('event-log');
+            const logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            logItem.innerHTML = `
+                <div class="log-timestamp">${timestamp}</div>
+                <div><span class="log-type">${type}</span>: ${message}</div>
+                ${data ? `<div style="font-size: 11px; color: #666; margin-top: 5px;">${JSON.stringify(data)}</div>` : ''}
+            `;
+            
+            logContainer.appendChild(logItem);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 50 events
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        function clearEventLog() {
+            eventLog = [];
+            document.getElementById('event-log').innerHTML = `
+                <div class="log-item">
+                    <div class="log-timestamp">Cleared</div>
+                    <div>Event log cleared</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

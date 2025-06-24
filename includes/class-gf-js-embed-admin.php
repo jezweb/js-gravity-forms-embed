@@ -193,12 +193,26 @@ class GF_JS_Embed_Admin {
             <h3><?php _e('Security Settings', 'gf-js-embed'); ?></h3>
             <table class="form-table">
                 <tr>
-                    <th><label for="js_embed_rate_limit"><?php _e('Rate Limiting', 'gf-js-embed'); ?></label></th>
+                    <th><label><?php _e('Rate Limiting', 'gf-js-embed'); ?></label></th>
                     <td>
-                        <input type="number" name="js_embed_rate_limit" id="js_embed_rate_limit" 
-                               value="<?php echo esc_attr($settings['rate_limit']); ?>" min="1" max="1000" />
-                        <label for="js_embed_rate_limit"><?php _e('requests per hour', 'gf-js-embed'); ?></label>
-                        <p class="description"><?php _e('Maximum number of requests allowed per IP address per hour.', 'gf-js-embed'); ?></p>
+                        <label>
+                            <input type="checkbox" name="js_embed_rate_limit_enabled" id="js_embed_rate_limit_enabled" 
+                                   value="1" <?php checked(!empty($settings['rate_limit_enabled']), true); ?>>
+                            <?php _e('Enable form-specific rate limiting', 'gf-js-embed'); ?>
+                        </label>
+                        <div id="rate_limit_settings" style="margin-top: 10px; <?php echo empty($settings['rate_limit_enabled']) ? 'display: none;' : ''; ?>">
+                            <p>
+                                <label><?php _e('Requests per window:', 'gf-js-embed'); ?></label><br>
+                                <input type="number" name="js_embed_rate_limit_requests" 
+                                       value="<?php echo esc_attr($settings['rate_limit_requests'] ?? 60); ?>" min="1" max="1000" />
+                            </p>
+                            <p>
+                                <label><?php _e('Window duration (seconds):', 'gf-js-embed'); ?></label><br>
+                                <input type="number" name="js_embed_rate_limit_window" 
+                                       value="<?php echo esc_attr($settings['rate_limit_window'] ?? 60); ?>" min="1" max="3600" />
+                            </p>
+                        </div>
+                        <p class="description"><?php _e('Control request frequency per IP address. Leave unchecked to use global rate limits.', 'gf-js-embed'); ?></p>
                     </td>
                 </tr>
                 
@@ -238,18 +252,41 @@ class GF_JS_Embed_Admin {
                     </td>
                 </tr>
                 
-                <?php if ($settings['api_key']) : ?>
                 <tr>
                     <th><label><?php _e('API Key', 'gf-js-embed'); ?></label></th>
                     <td>
-                        <code><?php echo esc_html($settings['api_key']); ?></code>
-                        <button type="submit" name="regenerate_api_key" class="button" onclick="return confirm('<?php esc_attr_e('Are you sure you want to regenerate the API key?', 'gf-js-embed'); ?>');">
-                            <?php _e('Regenerate', 'gf-js-embed'); ?>
-                        </button>
-                        <p class="description"><?php _e('Use this API key for secure access to the form.', 'gf-js-embed'); ?></p>
+                        <?php if ($settings['api_key']) : ?>
+                            <div class="gf-api-key-display">
+                                <input type="text" id="gf-api-key-field" class="regular-text code" value="<?php echo esc_attr($settings['api_key']); ?>" readonly style="background: #f0f0f0;">
+                                <button type="button" class="button" id="gf-api-key-toggle">
+                                    <span class="dashicons dashicons-visibility" style="vertical-align: text-bottom;"></span>
+                                    <span class="text"><?php _e('Show', 'gf-js-embed'); ?></span>
+                                </button>
+                                <button type="button" class="button" id="gf-api-key-copy">
+                                    <span class="dashicons dashicons-clipboard" style="vertical-align: text-bottom;"></span>
+                                    <?php _e('Copy', 'gf-js-embed'); ?>
+                                </button>
+                                <button type="submit" name="regenerate_api_key" class="button" onclick="return confirm('<?php esc_attr_e('Are you sure you want to regenerate the API key? This will invalidate the current key.', 'gf-js-embed'); ?>');">
+                                    <span class="dashicons dashicons-update" style="vertical-align: text-bottom;"></span>
+                                    <?php _e('Regenerate', 'gf-js-embed'); ?>
+                                </button>
+                            </div>
+                            <p class="description"><?php _e('Use this API key to secure access to this form. Add it to your embed code as shown below.', 'gf-js-embed'); ?></p>
+                        <?php else : ?>
+                            <p class="description"><?php _e('An API key will be generated when you enable embedding for this form.', 'gf-js-embed'); ?></p>
+                        <?php endif; ?>
                     </td>
                 </tr>
-                <?php endif; ?>
+                
+                <tr>
+                    <th><label><?php _e('API Key Required', 'gf-js-embed'); ?></label></th>
+                    <td>
+                        <input type="checkbox" name="js_embed_require_api_key" id="js_embed_require_api_key" 
+                               value="1" <?php checked(!empty($settings['api_key']), true); ?> disabled>
+                        <label for="js_embed_require_api_key"><?php _e('Require API key for all requests (automatically enabled when API key exists)', 'gf-js-embed'); ?></label>
+                        <p class="description"><?php _e('When an API key is generated, it becomes required for all embed requests to this form.', 'gf-js-embed'); ?></p>
+                    </td>
+                </tr>
             </table>
             
             <?php submit_button(__('Save Settings', 'gf-js-embed')); ?>
@@ -332,7 +369,9 @@ class GF_JS_Embed_Admin {
             )),
             'theme' => sanitize_text_field($_POST['js_embed_theme'] ?? ''),
             'custom_css' => sanitize_textarea_field($_POST['js_embed_custom_css'] ?? ''),
-            'rate_limit' => max(1, intval($_POST['js_embed_rate_limit'] ?? 60)),
+            'rate_limit_enabled' => !empty($_POST['js_embed_rate_limit_enabled']),
+            'rate_limit_requests' => max(1, intval($_POST['js_embed_rate_limit_requests'] ?? 60)),
+            'rate_limit_window' => max(1, intval($_POST['js_embed_rate_limit_window'] ?? 60)),
             'honeypot_enabled' => !empty($_POST['js_embed_honeypot']),
             'csrf_enabled' => !empty($_POST['js_embed_csrf']),
             'spam_detection' => !empty($_POST['js_embed_spam_detection']),
@@ -434,7 +473,12 @@ class GF_JS_Embed_Admin {
             wp_die(__('Form not found.', 'gf-js-embed'));
         }
         
-        $analytics = GF_JS_Embed_Analytics::get_form_analytics($form_id);
+        // Get enhanced analytics from database
+        $enhanced_analytics = GF_JS_Embed_Analytics::get_enhanced_analytics($form_id);
+        $legacy_analytics = GF_JS_Embed_Analytics::get_form_analytics($form_id);
+        
+        // Merge data for backward compatibility
+        $analytics = array_merge($legacy_analytics, $enhanced_analytics);
         
         ?>
         <div class="wrap">
@@ -459,25 +503,96 @@ class GF_JS_Embed_Admin {
                 </div>
             <?php endif; ?>
             
-            <div class="gf-embed-analytics-grid">
-                <div class="gf-embed-stat-box">
-                    <h3><?php _e('Total Views', 'gf-js-embed'); ?></h3>
-                    <p class="gf-embed-stat-number"><?php echo number_format($analytics['total_views']); ?></p>
+            <!-- Analytics Controls -->
+            <div class="gf-analytics-controls">
+                <label for="gf-analytics-date-from"><?php _e('Date From:', 'gf-js-embed'); ?></label>
+                <input type="date" id="gf-analytics-date-from" value="<?php echo date('Y-m-d', strtotime('-30 days')); ?>">
+                
+                <label for="gf-analytics-date-to"><?php _e('Date To:', 'gf-js-embed'); ?></label>
+                <input type="date" id="gf-analytics-date-to" value="<?php echo date('Y-m-d'); ?>">
+                
+                <button type="button" class="gf-analytics-refresh">
+                    <span class="dashicons dashicons-update"></span>
+                    <?php _e('Refresh', 'gf-js-embed'); ?>
+                </button>
+            </div>
+            
+            <!-- Enhanced Metrics Grid -->
+            <div class="gf-analytics-dashboard">
+                <div class="gf-analytics-metric-card">
+                    <div class="gf-analytics-metric-value"><?php echo number_format($analytics['views'] ?? $analytics['total_views'] ?? 0); ?></div>
+                    <div class="gf-analytics-metric-label"><?php _e('Total Views', 'gf-js-embed'); ?></div>
                 </div>
                 
-                <div class="gf-embed-stat-box">
-                    <h3><?php _e('Total Submissions', 'gf-js-embed'); ?></h3>
-                    <p class="gf-embed-stat-number"><?php echo number_format($analytics['total_submissions']); ?></p>
+                <div class="gf-analytics-metric-card">
+                    <div class="gf-analytics-metric-value"><?php echo number_format($analytics['unique_visitors'] ?? 0); ?></div>
+                    <div class="gf-analytics-metric-label"><?php _e('Unique Visitors', 'gf-js-embed'); ?></div>
                 </div>
                 
-                <div class="gf-embed-stat-box">
-                    <h3><?php _e('Conversion Rate', 'gf-js-embed'); ?></h3>
-                    <p class="gf-embed-stat-number"><?php echo $analytics['conversion_rate']; ?>%</p>
+                <div class="gf-analytics-metric-card">
+                    <div class="gf-analytics-metric-value"><?php echo number_format($analytics['submissions'] ?? $analytics['total_submissions'] ?? 0); ?></div>
+                    <div class="gf-analytics-metric-label"><?php _e('Submissions', 'gf-js-embed'); ?></div>
                 </div>
                 
-                <div class="gf-embed-stat-box">
-                    <h3><?php _e('Active Domains', 'gf-js-embed'); ?></h3>
-                    <p class="gf-embed-stat-number"><?php echo count($analytics['domains']); ?></p>
+                <div class="gf-analytics-metric-card">
+                    <div class="gf-analytics-metric-value"><?php echo $analytics['conversion_rate'] ?? 0; ?>%</div>
+                    <div class="gf-analytics-metric-label"><?php _e('Conversion Rate', 'gf-js-embed'); ?></div>
+                </div>
+                
+                <div class="gf-analytics-metric-card">
+                    <div class="gf-analytics-metric-value"><?php echo $analytics['avg_completion_time'] ?? 0; ?>s</div>
+                    <div class="gf-analytics-metric-label"><?php _e('Avg Completion Time', 'gf-js-embed'); ?></div>
+                </div>
+            </div>
+            
+            <!-- Charts Dashboard -->
+            <div class="gf-analytics-dashboard">
+                <div class="gf-analytics-widget">
+                    <div class="gf-analytics-widget-header">
+                        <?php _e('Views & Submissions Over Time', 'gf-js-embed'); ?>
+                    </div>
+                    <div class="gf-analytics-widget-content">
+                        <canvas id="gf-analytics-timeseries" data-form-id="<?php echo $form_id; ?>"></canvas>
+                    </div>
+                </div>
+                
+                <div class="gf-analytics-widget">
+                    <div class="gf-analytics-widget-header">
+                        <?php _e('Conversion Funnel', 'gf-js-embed'); ?>
+                    </div>
+                    <div class="gf-analytics-widget-content">
+                        <canvas id="gf-analytics-funnel" data-form-id="<?php echo $form_id; ?>"></canvas>
+                    </div>
+                </div>
+                
+                <div class="gf-analytics-widget">
+                    <div class="gf-analytics-widget-header">
+                        <?php _e('Device Types', 'gf-js-embed'); ?>
+                    </div>
+                    <div class="gf-analytics-widget-content">
+                        <canvas id="gf-analytics-devices" data-form-id="<?php echo $form_id; ?>"></canvas>
+                    </div>
+                </div>
+                
+                <div class="gf-analytics-widget">
+                    <div class="gf-analytics-widget-header">
+                        <?php _e('Browser Usage', 'gf-js-embed'); ?>
+                    </div>
+                    <div class="gf-analytics-widget-content">
+                        <canvas id="gf-analytics-browsers" data-form-id="<?php echo $form_id; ?>"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Field Interaction Heatmap -->
+            <div class="gf-analytics-widget">
+                <div class="gf-analytics-widget-header">
+                    <?php _e('Field Interaction Heatmap', 'gf-js-embed'); ?>
+                </div>
+                <div class="gf-analytics-widget-content">
+                    <div id="gf-analytics-heatmap" data-form-id="<?php echo $form_id; ?>">
+                        <div class="gf-analytics-loading"><?php _e('Loading heatmap data...', 'gf-js-embed'); ?></div>
+                    </div>
                 </div>
             </div>
             
@@ -603,8 +718,15 @@ export default {
                             <td><?php echo ucfirst($settings['security_level']); ?></td>
                         </tr>
                         <tr>
-                            <th><?php _e('Rate Limit', 'gf-js-embed'); ?></th>
-                            <td><?php echo $settings['rate_limit']; ?> <?php _e('requests per hour', 'gf-js-embed'); ?></td>
+                            <th><?php _e('Rate Limiting', 'gf-js-embed'); ?></th>
+                            <td>
+                                <?php if (!empty($settings['rate_limit_enabled'])) : ?>
+                                    <?php echo $settings['rate_limit_requests'] ?? 60; ?> <?php _e('requests per', 'gf-js-embed'); ?> 
+                                    <?php echo $settings['rate_limit_window'] ?? 60; ?> <?php _e('seconds', 'gf-js-embed'); ?>
+                                <?php else : ?>
+                                    <?php _e('Using global limits', 'gf-js-embed'); ?>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     </table>
                     <p>
@@ -768,7 +890,8 @@ export default {
      * Enqueue admin scripts and styles
      */
     public function enqueue_admin_scripts($hook) {
-        if (!in_array($hook, ['toplevel_page_gf_edit_forms', 'forms_page_gf_js_embed_analytics'])) {
+        // Only load on Gravity Forms pages
+        if (strpos($hook, 'gf_') === false && strpos($hook, 'gravityforms') === false) {
             return;
         }
         
@@ -786,5 +909,60 @@ export default {
             GF_JS_EMBED_VERSION,
             true
         );
+        
+        // Enqueue rate limiting scripts for form settings
+        if (strpos($hook, 'gf_edit_forms') !== false || strpos($hook, 'gf_js_embed') !== false) {
+            wp_enqueue_script('gf-js-embed-rate-limits', 
+                GF_JS_EMBED_PLUGIN_URL . 'assets/js/admin-rate-limits.js', 
+                ['jquery'], 
+                GF_JS_EMBED_VERSION, 
+                true
+            );
+            
+            // Enqueue event system admin scripts
+            wp_enqueue_script('gf-js-embed-events-admin', 
+                GF_JS_EMBED_PLUGIN_URL . 'assets/js/admin-events.js', 
+                ['jquery'], 
+                GF_JS_EMBED_VERSION, 
+                true
+            );
+            
+            // Enqueue CSRF admin scripts
+            wp_enqueue_script('gf-js-embed-csrf-admin', 
+                GF_JS_EMBED_PLUGIN_URL . 'assets/js/admin-csrf.js', 
+                ['jquery'], 
+                GF_JS_EMBED_VERSION, 
+                true
+            );
+            
+            wp_localize_script('gf-js-embed-rate-limits', 'gfJsEmbedAdmin', [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('gf_js_embed_admin')
+            ]);
+            
+            // Localize event admin scripts
+            wp_localize_script('gf-js-embed-events-admin', 'gfEmbedEventsAdmin', [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('gf_js_embed_events')
+            ]);
+        }
+        
+        // Load analytics charts on analytics pages
+        if ($hook === 'forms_page_gf_js_embed_analytics') {
+            wp_enqueue_script('chart-js', 
+                'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js', 
+                [], 
+                '3.9.1', 
+                true
+            );
+            
+            wp_enqueue_script(
+                'gf-js-embed-analytics-charts',
+                GF_JS_EMBED_PLUGIN_URL . 'assets/js/analytics-charts.js',
+                ['jquery', 'chart-js'],
+                GF_JS_EMBED_VERSION,
+                true
+            );
+        }
     }
 }

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Key Test - Gravity Forms JS Embed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-section h2 {
+            margin-top: 0;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .form-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Key Test - Gravity Forms JS Embed</h1>
+    
+    <div class="test-section">
+        <h2>Test Configuration</h2>
+        <label>
+            WordPress Site URL:
+            <input type="text" id="site-url" placeholder="https://your-site.com" value="">
+        </label>
+        <label>
+            Form ID:
+            <input type="text" id="form-id" placeholder="1" value="1">
+        </label>
+        <label>
+            API Key (optional):
+            <input type="text" id="api-key" placeholder="gfjs_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" value="">
+        </label>
+        <button onclick="testWithoutKey()">Test Without API Key</button>
+        <button onclick="testWithKey()">Test With API Key</button>
+        <button onclick="testWithInvalidKey()">Test With Invalid Key</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Embed Code Preview</h2>
+        <pre id="embed-code"></pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>Form Display</h2>
+        <div id="form-container" class="form-container">
+            <p style="color: #999; text-align: center;">Form will appear here after testing</p>
+        </div>
+    </div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+        const embedCodeDiv = document.getElementById('embed-code');
+        const formContainer = document.getElementById('form-container');
+        
+        function getConfig() {
+            return {
+                siteUrl: document.getElementById('site-url').value || window.location.origin,
+                formId: document.getElementById('form-id').value || '1',
+                apiKey: document.getElementById('api-key').value
+            };
+        }
+        
+        function showResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}:</strong> ${message}`;
+            resultsDiv.appendChild(div);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+        
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+            formContainer.innerHTML = '<p style="color: #999; text-align: center;">Testing...</p>';
+        }
+        
+        async function testAPI(includeKey = false, invalidKey = false) {
+            const config = getConfig();
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            if (includeKey && config.apiKey) {
+                headers['X-API-Key'] = invalidKey ? 'gfjs_invalid_key_test' : config.apiKey;
+            }
+            
+            try {
+                showResult(`Fetching form data from: ${config.siteUrl}/wp-json/gf-embed/v1/form/${config.formId}`, 'info');
+                
+                const response = await fetch(`${config.siteUrl}/wp-json/gf-embed/v1/form/${config.formId}`, {
+                    method: 'GET',
+                    headers: headers,
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showResult(`Success! Form "${data.form.title}" loaded successfully`, 'success');
+                    showResult(`Form has ${data.form.fields.length} fields`, 'info');
+                    
+                    // Show embed code
+                    if (includeKey && config.apiKey && !invalidKey) {
+                        embedCodeDiv.textContent = `<div data-gf-form="${config.formId}" data-gf-api-key="${config.apiKey}"></div>
+<script src="${config.siteUrl}/gf-js-embed/v1/embed.js"></script>`;
+                    } else {
+                        embedCodeDiv.textContent = `<div data-gf-form="${config.formId}"></div>
+<script src="${config.siteUrl}/gf-js-embed/v1/embed.js"></script>`;
+                    }
+                    
+                    // Try to display the form
+                    displayForm(config, includeKey && !invalidKey);
+                } else {
+                    showResult(`Error ${response.status}: ${data.message || 'Unknown error'}`, 'error');
+                    if (data.code) {
+                        showResult(`Error code: ${data.code}`, 'error');
+                    }
+                }
+            } catch (error) {
+                showResult(`Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        function displayForm(config, includeKey) {
+            formContainer.innerHTML = '';
+            
+            const formDiv = document.createElement('div');
+            formDiv.setAttribute('data-gf-form', config.formId);
+            if (includeKey && config.apiKey) {
+                formDiv.setAttribute('data-gf-api-key', config.apiKey);
+            }
+            formContainer.appendChild(formDiv);
+            
+            // Load the embed script
+            const script = document.createElement('script');
+            script.src = `${config.siteUrl}/gf-js-embed/v1/embed.js`;
+            script.onload = () => {
+                showResult('Embed script loaded successfully', 'success');
+            };
+            script.onerror = () => {
+                showResult('Failed to load embed script', 'error');
+            };
+            document.body.appendChild(script);
+        }
+        
+        function testWithoutKey() {
+            clearResults();
+            showResult('Testing without API key...', 'info');
+            testAPI(false);
+        }
+        
+        function testWithKey() {
+            clearResults();
+            const config = getConfig();
+            if (!config.apiKey) {
+                showResult('Please enter an API key first', 'error');
+                return;
+            }
+            showResult('Testing with API key...', 'info');
+            testAPI(true);
+        }
+        
+        function testWithInvalidKey() {
+            clearResults();
+            showResult('Testing with invalid API key...', 'info');
+            testAPI(true, true);
+        }
+        
+        // Auto-fill site URL if on same domain
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentOrigin = window.location.origin;
+            if (currentOrigin.includes('localhost') || currentOrigin.includes('127.0.0.1')) {
+                document.getElementById('site-url').value = currentOrigin;
+            }
+        });
+    </script>
+</body>
+</html>

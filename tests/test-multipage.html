@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Page Forms Test - Gravity Forms JS Embed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .controls {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .form-field {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        button.secondary {
+            background: #666;
+        }
+        button.secondary:hover {
+            background: #444;
+        }
+        .output {
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-active {
+            background: #46b450;
+        }
+        .status-inactive {
+            background: #dc3232;
+        }
+        /* Sample multi-page form styles */
+        .sample-multipage-form {
+            background: #fff;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        /* Progress tracking */
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #0073aa;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        /* Event log */
+        .event-log {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        .log-timestamp {
+            color: #666;
+            font-size: 11px;
+        }
+        .log-type {
+            font-weight: bold;
+            color: #0073aa;
+        }
+        /* Saved data display */
+        .saved-data {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+        /* Manual simulation for demo */
+        .gfield {
+            margin-bottom: 20px;
+        }
+        .gfield.hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Multi-Page Forms Test - Gravity Forms JS Embed</h1>
+    
+    <div class="test-section">
+        <h2>Multi-Page System Status</h2>
+        <div class="controls">
+            <p>
+                <span class="status-indicator" id="multipage-status"></span>
+                Multi-Page Handler: <span id="multipage-text">Checking...</span>
+            </p>
+            <p>
+                <span class="status-indicator" id="autosave-status"></span>
+                Auto-Save: <span id="autosave-text">Disabled</span>
+            </p>
+            <button onclick="toggleAutoSave()">Toggle Auto-Save</button>
+            <button onclick="testMultiPageSystem()">Test System</button>
+            <button onclick="clearEventLog()">Clear Log</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Progress Statistics</h2>
+        <div class="progress-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="current-page">1</div>
+                <div class="stat-label">Current Page</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-pages">3</div>
+                <div class="stat-label">Total Pages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="fields-completed">0</div>
+                <div class="stat-label">Fields Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="save-count">0</div>
+                <div class="stat-label">Progress Saves</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Sample Multi-Page Form</h2>
+        <form class="gf-embed-form sample-multipage-form" data-form-id="multipage-test-1" id="multipage-test-form">
+            <div id="form-progress"></div>
+            
+            <!-- Page 1: Personal Information -->
+            <div class="page" data-page="1">
+                <h3>Page 1: Personal Information</h3>
+                <div class="gfield" id="field_multipage-test-1_1">
+                    <label for="first-name">First Name *</label>
+                    <input type="text" id="first-name" name="first_name" required>
+                </div>
+                <div class="gfield" id="field_multipage-test-1_2">
+                    <label for="last-name">Last Name *</label>
+                    <input type="text" id="last-name" name="last_name" required>
+                </div>
+                <div class="gfield" id="field_multipage-test-1_3">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+            </div>
+            
+            <!-- Page 2: Contact Details -->
+            <div class="page hidden" data-page="2">
+                <h3>Page 2: Contact Details</h3>
+                <div class="gfield" id="field_multipage-test-1_4">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone">
+                </div>
+                <div class="gfield" id="field_multipage-test-1_5">
+                    <label for="address">Street Address</label>
+                    <input type="text" id="address" name="address">
+                </div>
+                <div class="gfield" id="field_multipage-test-1_6">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city">
+                </div>
+            </div>
+            
+            <!-- Page 3: Additional Info -->
+            <div class="page hidden" data-page="3">
+                <h3>Page 3: Additional Information</h3>
+                <div class="gfield" id="field_multipage-test-1_7">
+                    <label for="comments">Comments</label>
+                    <textarea id="comments" name="comments" rows="4"></textarea>
+                </div>
+                <div class="gfield" id="field_multipage-test-1_8">
+                    <label>
+                        <input type="checkbox" name="newsletter" value="1">
+                        Subscribe to newsletter
+                    </label>
+                </div>
+                <div class="gfield" id="field_multipage-test-1_9">
+                    <label for="referral">How did you hear about us?</label>
+                    <select id="referral" name="referral">
+                        <option value="">Select...</option>
+                        <option value="search">Search Engine</option>
+                        <option value="social">Social Media</option>
+                        <option value="friend">Friend/Family</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="form-navigation"></div>
+        </form>
+        
+        <!-- Set up form config data -->
+        <script>
+            document.getElementById('multipage-test-form').dataset.formConfig = JSON.stringify({
+                multipage: {
+                    enabled: true,
+                    pages: [
+                        {
+                            number: 1,
+                            fields: [1, 2, 3],
+                            title: "Personal Information"
+                        },
+                        {
+                            number: 2,
+                            fields: [4, 5, 6],
+                            title: "Contact Details"
+                        },
+                        {
+                            number: 3,
+                            fields: [7, 8, 9],
+                            title: "Additional Information"
+                        }
+                    ],
+                    total_pages: 3,
+                    current_page: 1,
+                    progress_indicator: "steps",
+                    page_names: {
+                        1: "Personal Info",
+                        2: "Contact Details",
+                        3: "Additional Info"
+                    },
+                    navigation: {
+                        previous_button: "Previous",
+                        next_button: "Next",
+                        submit_button: "Submit Form"
+                    },
+                    validation: {
+                        validate_on_navigate: true,
+                        allow_previous_without_validation: true
+                    }
+                }
+            });
+        </script>
+    </div>
+    
+    <div class="test-section">
+        <h2>Testing Controls</h2>
+        <div class="controls">
+            <button onclick="navigateToPage(1)">Go to Page 1</button>
+            <button onclick="navigateToPage(2)">Go to Page 2</button>
+            <button onclick="navigateToPage(3)">Go to Page 3</button>
+            <button onclick="saveCurrentProgress()">Save Progress</button>
+            <button onclick="loadSavedProgress()">Load Progress</button>
+            <button onclick="clearProgress()">Clear Progress</button>
+            <button onclick="validateCurrentPage()">Validate Page</button>
+            <button onclick="showSavedData()">Show Saved Data</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Saved Form Data</h2>
+        <div id="saved-data-display" class="saved-data">No data saved yet</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Event Log</h2>
+        <div id="event-log" class="event-log">
+            <div class="log-item">
+                <div class="log-timestamp">Ready</div>
+                <div>Multi-page event log will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let eventLog = [];
+        let multipageInstance = null;
+        let currentFormData = {};
+        let saveCount = 0;
+        
+        // Wait for multi-page system to load
+        window.addEventListener('load', function() {
+            setTimeout(initializeMultiPageTest, 1000);
+        });
+        
+        function initializeMultiPageTest() {
+            // Check if multi-page system is available
+            if (typeof GFMultiPage !== 'undefined') {
+                multipageInstance = GFMultiPage;
+                updateMultiPageStatus(true);
+                setupEventListeners();
+                
+                // Register the test form
+                if (typeof GFEvents !== 'undefined') {
+                    const testForm = document.getElementById('multipage-test-form');
+                    if (testForm) {
+                        GFEvents.registerForm('multipage-test-1', testForm);
+                    }
+                }
+            } else {
+                updateMultiPageStatus(false);
+                logEvent('error', 'Multi-page system not found');
+                
+                // Set up manual simulation
+                setupManualSimulation();
+            }
+        }
+        
+        function updateMultiPageStatus(active) {
+            const statusElement = document.getElementById('multipage-status');
+            const textElement = document.getElementById('multipage-text');
+            
+            if (active) {
+                statusElement.className = 'status-indicator status-active';
+                textElement.textContent = 'Active';
+                logEvent('success', 'Multi-page handler initialized');
+            } else {
+                statusElement.className = 'status-indicator status-inactive';
+                textElement.textContent = 'Inactive (Manual Mode)';
+                logEvent('warning', 'Using manual simulation mode');
+            }
+        }
+        
+        function setupEventListeners() {
+            if (typeof GFEvents === 'undefined') return;
+            
+            // Listen for multi-page events
+            GFEvents.on('multipage.initialized', function(eventData) {
+                logEvent('multipage', 'Form initialized with ' + eventData.data.totalPages + ' pages');
+                updateStats();
+            });
+            
+            GFEvents.on('multipage.beforeNavigate', function(eventData) {
+                logEvent('multipage', 'Navigating from page ' + eventData.data.fromPage + ' to ' + eventData.data.toPage);
+            });
+            
+            GFEvents.on('multipage.afterNavigate', function(eventData) {
+                logEvent('multipage', 'Arrived at page ' + eventData.data.currentPage);
+                updateStats();
+            });
+            
+            GFEvents.on('multipage.fieldChanged', function(eventData) {
+                logEvent('field', 'Field changed: ' + eventData.data.fieldName + ' = ' + eventData.data.value);
+                updateFieldCount();
+            });
+            
+            GFEvents.on('multipage.progressSaved', function(eventData) {
+                saveCount++;
+                document.getElementById('save-count').textContent = saveCount;
+                logEvent('save', 'Progress saved for page ' + eventData.data.currentPage);
+            });
+        }
+        
+        function setupManualSimulation() {
+            // Manual page navigation
+            window.navigateToPage = function(pageNumber) {
+                // Hide all pages
+                document.querySelectorAll('.page').forEach(page => {
+                    page.classList.add('hidden');
+                });
+                
+                // Show selected page
+                const targetPage = document.querySelector(`[data-page="${pageNumber}"]`);
+                if (targetPage) {
+                    targetPage.classList.remove('hidden');
+                    document.getElementById('current-page').textContent = pageNumber;
+                    logEvent('navigation', 'Manually navigated to page ' + pageNumber);
+                }
+                
+                updateNavigation(pageNumber);
+            };
+            
+            // Set up form field listeners
+            const form = document.getElementById('multipage-test-form');
+            form.addEventListener('change', function(e) {
+                if (e.target.matches('input, select, textarea')) {
+                    const fieldName = e.target.name || e.target.id;
+                    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+                    currentFormData[fieldName] = value;
+                    logEvent('field', 'Field updated: ' + fieldName);
+                    updateFieldCount();
+                }
+            });
+            
+            // Initial navigation setup
+            updateNavigation(1);
+        }
+        
+        function updateNavigation(currentPage) {
+            const navContainer = document.getElementById('form-navigation');
+            let html = '<div class="gf-page-navigation">';
+            
+            if (currentPage > 1) {
+                html += '<button type="button" onclick="navigateToPage(' + (currentPage - 1) + ')">Previous</button>';
+            }
+            
+            if (currentPage < 3) {
+                html += '<button type="button" onclick="navigateToPage(' + (currentPage + 1) + ')">Next</button>';
+            } else {
+                html += '<button type="submit">Submit Form</button>';
+            }
+            
+            html += '</div>';
+            navContainer.innerHTML = html;
+        }
+        
+        function toggleAutoSave() {
+            const statusElement = document.getElementById('autosave-status');
+            const textElement = document.getElementById('autosave-text');
+            
+            // Toggle visual state
+            if (statusElement.className.includes('status-active')) {
+                statusElement.className = 'status-indicator status-inactive';
+                textElement.textContent = 'Disabled';
+                logEvent('setting', 'Auto-save disabled');
+            } else {
+                statusElement.className = 'status-indicator status-active';
+                textElement.textContent = 'Enabled';
+                logEvent('setting', 'Auto-save enabled');
+            }
+        }
+        
+        function testMultiPageSystem() {
+            logEvent('test', 'Starting multi-page system test');
+            
+            // Test navigation
+            navigateToPage(2);
+            setTimeout(() => navigateToPage(3), 500);
+            setTimeout(() => navigateToPage(1), 1000);
+            
+            logEvent('test', 'Multi-page system test completed');
+        }
+        
+        function saveCurrentProgress() {
+            const currentPage = document.getElementById('current-page').textContent;
+            const progressData = {
+                page: currentPage,
+                data: currentFormData,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('multipage_test_progress', JSON.stringify(progressData));
+            saveCount++;
+            document.getElementById('save-count').textContent = saveCount;
+            logEvent('save', 'Progress saved manually');
+            showSavedData();
+        }
+        
+        function loadSavedProgress() {
+            const saved = localStorage.getItem('multipage_test_progress');
+            if (saved) {
+                const progressData = JSON.parse(saved);
+                currentFormData = progressData.data;
+                
+                // Restore form values
+                Object.entries(currentFormData).forEach(([fieldName, value]) => {
+                    const field = document.querySelector(`[name="${fieldName}"]`);
+                    if (field) {
+                        if (field.type === 'checkbox') {
+                            field.checked = value;
+                        } else {
+                            field.value = value;
+                        }
+                    }
+                });
+                
+                // Navigate to saved page
+                navigateToPage(parseInt(progressData.page));
+                
+                logEvent('load', 'Progress loaded from save');
+                updateFieldCount();
+            } else {
+                logEvent('warning', 'No saved progress found');
+            }
+        }
+        
+        function clearProgress() {
+            localStorage.removeItem('multipage_test_progress');
+            currentFormData = {};
+            saveCount = 0;
+            document.getElementById('save-count').textContent = saveCount;
+            document.getElementById('multipage-test-form').reset();
+            navigateToPage(1);
+            logEvent('clear', 'Progress cleared');
+            showSavedData();
+        }
+        
+        function validateCurrentPage() {
+            const currentPage = parseInt(document.getElementById('current-page').textContent);
+            const currentPageElement = document.querySelector(`[data-page="${currentPage}"]`);
+            const requiredFields = currentPageElement.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value) {
+                    isValid = false;
+                    field.style.borderColor = '#dc3545';
+                } else {
+                    field.style.borderColor = '#ddd';
+                }
+            });
+            
+            if (isValid) {
+                logEvent('validation', 'Page ' + currentPage + ' validation passed');
+            } else {
+                logEvent('validation', 'Page ' + currentPage + ' validation failed - missing required fields');
+            }
+            
+            return isValid;
+        }
+        
+        function showSavedData() {
+            const display = document.getElementById('saved-data-display');
+            const saved = localStorage.getItem('multipage_test_progress');
+            
+            if (saved) {
+                const data = JSON.parse(saved);
+                display.textContent = JSON.stringify(data, null, 2);
+            } else {
+                display.textContent = 'No saved data';
+            }
+        }
+        
+        function updateStats() {
+            // Update current page display
+            if (multipageInstance) {
+                const forms = multipageInstance.forms;
+                if (forms.size > 0) {
+                    const form = forms.values().next().value;
+                    if (form) {
+                        document.getElementById('current-page').textContent = form.currentPage;
+                        document.getElementById('total-pages').textContent = form.config.total_pages;
+                    }
+                }
+            }
+        }
+        
+        function updateFieldCount() {
+            const filledFields = Object.values(currentFormData).filter(v => v).length;
+            document.getElementById('fields-completed').textContent = filledFields;
+        }
+        
+        function logEvent(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const event = {
+                timestamp,
+                type,
+                message
+            };
+            
+            eventLog.push(event);
+            
+            // Update display
+            const logContainer = document.getElementById('event-log');
+            const logItem = document.createElement('div');
+            logItem.className = 'log-item';
+            logItem.innerHTML = `
+                <div class="log-timestamp">${timestamp}</div>
+                <div><span class="log-type">${type}</span>: ${message}</div>
+            `;
+            
+            logContainer.appendChild(logItem);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 50 events
+            while (logContainer.children.length > 50) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        function clearEventLog() {
+            eventLog = [];
+            document.getElementById('event-log').innerHTML = `
+                <div class="log-item">
+                    <div class="log-timestamp">Cleared</div>
+                    <div>Event log cleared</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

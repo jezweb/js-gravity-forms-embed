@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.5.0] - 2025-06-24
+
+### Added
+- **Rate Limiting System** - Configurable request throttling with database tracking and exponential backoff
+- **JavaScript Event System** - Global event bus for form lifecycle management and extensibility  
+- **CSRF Protection** - Session-based token validation for form submissions
+- **Multi-Page Forms Support** - Progress tracking, auto-save, and navigation between form pages
+- **Conditional Logic Engine** - Dynamic field visibility and requirements based on user input
+- Comprehensive test pages for all new features in `/tests/` directory
+- Admin interfaces for configuring rate limits, CSRF settings, and conditional logic rules
+- Database schema updates for analytics tracking and session management
+
+### Changed
+- Updated README.md to accurately reflect implemented vs promised features
+- Enhanced main plugin class to load new feature modules
+- Improved JavaScript SDK with event system integration
+- Updated version number to 0.4.0 throughout codebase
+
+### Fixed
+- Removed overpromised features from documentation (honeypot fields, bot detection, etc.)
+- Corrected API endpoint documentation with proper WordPress REST API paths
+- Fixed JavaScript SDK examples to show actual implemented functionality
+
 ## [0.4.0] - 2025-06-23
 
 ### Added

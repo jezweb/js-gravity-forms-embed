@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSRF Protection Test - Gravity Forms JS Embed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .controls {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .form-field {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #0073aa;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #005a87;
+        }
+        button.secondary {
+            background: #666;
+        }
+        button.secondary:hover {
+            background: #444;
+        }
+        button.danger {
+            background: #dc3232;
+        }
+        button.danger:hover {
+            background: #a00;
+        }
+        .output {
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-active {
+            background: #46b450;
+        }
+        .status-inactive {
+            background: #dc3232;
+        }
+        .status-warning {
+            background: #ffb900;
+        }
+        .token-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #fff;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #0073aa;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .sample-form {
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-field {
+            flex: 1;
+        }
+        .security-test {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .test-log {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+        }
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        .log-timestamp {
+            color: #666;
+            font-size: 11px;
+        }
+        .log-success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .log-error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .log-warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .token-display {
+            word-break: break-all;
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSRF Protection Test - Gravity Forms JS Embed</h1>
+    
+    <div class="test-section">
+        <h2>CSRF System Status</h2>
+        <div class="controls">
+            <p>
+                <span class="status-indicator" id="csrf-system-status"></span>
+                CSRF Protection: <span id="csrf-system-text">Checking...</span>
+            </p>
+            <p>
+                <span class="status-indicator" id="csrf-debug-status"></span>
+                Debug Mode: <span id="csrf-debug-text">Disabled</span>
+            </p>
+            <button onclick="toggleCSRFProtection()">Toggle CSRF Protection</button>
+            <button onclick="toggleCSRFDebug()">Toggle Debug Mode</button>
+            <button onclick="testCSRFSystem()">Test CSRF System</button>
+            <button onclick="clearTestLog()">Clear Test Log</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Token Statistics</h2>
+        <div class="token-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="total-tokens">0</div>
+                <div class="stat-label">Total Tokens</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="active-tokens">0</div>
+                <div class="stat-label">Active Tokens</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="expired-tokens">0</div>
+                <div class="stat-label">Expired Tokens</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="used-tokens">0</div>
+                <div class="stat-label">Used Tokens</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Current Token Information</h2>
+        <div class="controls">
+            <button onclick="generateNewToken()">Generate New Token</button>
+            <button onclick="validateCurrentToken()">Validate Current Token</button>
+            <button onclick="showTokenDetails()">Show Token Details</button>
+            <div id="current-token-display" class="token-display">No token generated yet</div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Sample Form for CSRF Testing</h2>
+        <form class="gf-embed-form sample-form" data-form-id="csrf-test-form" id="csrf-test-form">
+            <div class="form-row">
+                <div class="form-field">
+                    <label for="test-name">Name</label>
+                    <input type="text" id="test-name" name="test_name" required>
+                </div>
+                <div class="form-field">
+                    <label for="test-email">Email</label>
+                    <input type="email" id="test-email" name="test_email" required>
+                </div>
+            </div>
+            
+            <div class="form-field">
+                <label for="test-message">Message</label>
+                <textarea id="test-message" name="test_message" rows="3"></textarea>
+            </div>
+            
+            <button type="submit">Submit with CSRF Protection</button>
+            <button type="button" class="secondary" onclick="submitWithoutCSRF()">Submit WITHOUT CSRF (Test)</button>
+        </form>
+    </div>
+    
+    <div class="test-section">
+        <h2>Security Testing</h2>
+        <div class="security-test">
+            <h3>⚠️ Security Tests</h3>
+            <p>These tests simulate potential security attacks to verify CSRF protection is working correctly.</p>
+            <button onclick="testTokenReplay()" class="danger">Test Token Replay Attack</button>
+            <button onclick="testTokenTampering()" class="danger">Test Token Tampering</button>
+            <button onclick="testTokenExpiry()" class="secondary">Test Token Expiry</button>
+            <button onclick="testMissingToken()" class="danger">Test Missing Token</button>
+            <button onclick="testCrossOriginRequest()" class="danger">Test Cross-Origin Request</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Manual Token Testing</h2>
+        <div class="controls">
+            <div class="form-field">
+                <label for="manual-token">Test Token:</label>
+                <input type="text" id="manual-token" placeholder="Enter token to test">
+            </div>
+            <div class="form-field">
+                <label for="manual-form-id">Form ID (optional):</label>
+                <input type="number" id="manual-form-id" placeholder="Enter form ID">
+            </div>
+            <button onclick="validateManualToken()">Validate Manual Token</button>
+            <button onclick="generateTokenForForm()">Generate Token for Form</button>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Log</h2>
+        <div id="test-log" class="test-log">
+            <div class="log-item">
+                <div class="log-timestamp">Ready</div>
+                <div>CSRF test log will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let testLog = [];
+        let currentToken = null;
+        let csrfInstance = null;
+        
+        // Wait for CSRF system to load
+        window.addEventListener('load', function() {
+            setTimeout(initializeCSRFTest, 1000);
+        });
+        
+        function initializeCSRFTest() {
+            // Check if CSRF system is available
+            if (typeof GFCSRF !== 'undefined') {
+                csrfInstance = GFCSRF;
+                updateCSRFStatus(true);
+                csrfInstance.setDebug(true);
+                setupCSRFListeners();
+                updateTokenStats();
+            } else {
+                updateCSRFStatus(false);
+                logTest('error', 'CSRF system not found');
+            }
+        }
+        
+        function updateCSRFStatus(active) {
+            const statusElement = document.getElementById('csrf-system-status');
+            const textElement = document.getElementById('csrf-system-text');
+            
+            if (active) {
+                statusElement.className = 'status-indicator status-active';
+                textElement.textContent = 'Active';
+                logTest('success', 'CSRF protection system initialized');
+            } else {
+                statusElement.className = 'status-indicator status-inactive';
+                textElement.textContent = 'Inactive';
+                logTest('error', 'CSRF protection system not available');
+            }
+        }
+        
+        function setupCSRFListeners() {
+            if (!csrfInstance) return;
+            
+            // Listen for CSRF events
+            if (typeof GFEvents !== 'undefined') {
+                GFEvents.on('csrf.tokenRefreshed', function(eventData) {
+                    logTest('success', `Token refreshed for form: ${eventData.data.formId}`);
+                    updateTokenStats();
+                });
+                
+                GFEvents.on('csrf.initialized', function(eventData) {
+                    logTest('success', 'CSRF system initialized via events');
+                });
+            }
+            
+            // Register the test form
+            if (typeof GFEvents !== 'undefined') {
+                const testForm = document.getElementById('csrf-test-form');
+                if (testForm) {
+                    GFEvents.registerForm('csrf-test-form', testForm);
+                }
+            }
+        }
+        
+        async function generateNewToken() {
+            if (!csrfInstance) {
+                logTest('error', 'CSRF instance not available');
+                return;
+            }
+            
+            try {
+                const token = await csrfInstance.generateToken('csrf-test-form');
+                if (token) {
+                    currentToken = token;
+                    document.getElementById('current-token-display').textContent = token;
+                    logTest('success', 'New token generated: ' + token.substring(0, 8) + '...');
+                    updateTokenStats();
+                } else {
+                    logTest('error', 'Failed to generate token');
+                }
+            } catch (error) {
+                logTest('error', 'Error generating token: ' + error.message);
+            }
+        }
+        
+        async function validateCurrentToken() {
+            if (!csrfInstance || !currentToken) {
+                logTest('warning', 'No current token to validate');
+                return;
+            }
+            
+            try {
+                const isValid = await csrfInstance.validateToken(currentToken, 'csrf-test-form');
+                if (isValid) {
+                    logTest('success', 'Current token is valid');
+                } else {
+                    logTest('error', 'Current token is invalid');
+                }
+            } catch (error) {
+                logTest('error', 'Error validating token: ' + error.message);
+            }
+        }
+        
+        function showTokenDetails() {
+            if (!csrfInstance) {
+                logTest('error', 'CSRF instance not available');
+                return;
+            }
+            
+            const stats = csrfInstance.getTokenStats();
+            const details = `Token Statistics:
+Total: ${stats.totalTokens}
+Active: ${stats.activeTokens}
+Expired: ${stats.expiredTokens}
+Used: ${stats.usedTokens}`;
+            
+            logTest('info', details);
+        }
+        
+        function updateTokenStats() {
+            if (!csrfInstance) return;
+            
+            const stats = csrfInstance.getTokenStats();
+            document.getElementById('total-tokens').textContent = stats.totalTokens;
+            document.getElementById('active-tokens').textContent = stats.activeTokens;
+            document.getElementById('expired-tokens').textContent = stats.expiredTokens;
+            document.getElementById('used-tokens').textContent = stats.usedTokens;
+        }
+        
+        function toggleCSRFProtection() {
+            if (!csrfInstance) {
+                logTest('error', 'CSRF instance not available');
+                return;
+            }
+            
+            const isEnabled = csrfInstance.enabled;
+            csrfInstance.setEnabled(!isEnabled);
+            
+            const statusElement = document.getElementById('csrf-system-status');
+            const textElement = document.getElementById('csrf-system-text');
+            
+            if (!isEnabled) {
+                statusElement.className = 'status-indicator status-active';
+                textElement.textContent = 'Active';
+                logTest('success', 'CSRF protection enabled');
+            } else {
+                statusElement.className = 'status-indicator status-inactive';
+                textElement.textContent = 'Disabled';
+                logTest('warning', 'CSRF protection disabled');
+            }
+        }
+        
+        function toggleCSRFDebug() {
+            if (!csrfInstance) return;
+            
+            const debugStatus = document.getElementById('csrf-debug-status');
+            const debugText = document.getElementById('csrf-debug-text');
+            
+            const currentDebug = csrfInstance.debug;
+            csrfInstance.setDebug(!currentDebug);
+            
+            if (!currentDebug) {
+                debugStatus.className = 'status-indicator status-active';
+                debugText.textContent = 'Enabled';
+                logTest('info', 'CSRF debug mode enabled');
+            } else {
+                debugStatus.className = 'status-indicator status-inactive';
+                debugText.textContent = 'Disabled';
+                logTest('info', 'CSRF debug mode disabled');
+            }
+        }
+        
+        function testCSRFSystem() {
+            logTest('info', 'Starting comprehensive CSRF system test');
+            
+            // Test 1: Token generation
+            generateNewToken().then(() => {
+                // Test 2: Token validation
+                return validateCurrentToken();
+            }).then(() => {
+                // Test 3: Token stats
+                showTokenDetails();
+                logTest('success', 'CSRF system test completed successfully');
+            }).catch(error => {
+                logTest('error', 'CSRF system test failed: ' + error.message);
+            });
+        }
+        
+        async function testTokenReplay() {
+            if (!currentToken) {
+                logTest('warning', 'Generate a token first');
+                return;
+            }
+            
+            logTest('info', 'Testing token replay attack...');
+            
+            try {
+                // First use
+                const firstUse = await csrfInstance.validateToken(currentToken, 'csrf-test-form');
+                logTest('info', 'First token use: ' + (firstUse ? 'valid' : 'invalid'));
+                
+                // Second use (should fail)
+                const secondUse = await csrfInstance.validateToken(currentToken, 'csrf-test-form');
+                if (!secondUse) {
+                    logTest('success', 'Token replay attack prevented - token rejected on second use');
+                } else {
+                    logTest('error', 'Token replay attack NOT prevented - token accepted on second use');
+                }
+            } catch (error) {
+                logTest('error', 'Error testing token replay: ' + error.message);
+            }
+        }
+        
+        async function testTokenTampering() {
+            if (!currentToken) {
+                logTest('warning', 'Generate a token first');
+                return;
+            }
+            
+            logTest('info', 'Testing token tampering...');
+            
+            // Tamper with the token
+            const tamperedToken = currentToken.substring(0, -5) + 'XXXXX';
+            
+            try {
+                const isValid = await csrfInstance.validateToken(tamperedToken, 'csrf-test-form');
+                if (!isValid) {
+                    logTest('success', 'Token tampering detected - tampered token rejected');
+                } else {
+                    logTest('error', 'Token tampering NOT detected - tampered token accepted');
+                }
+            } catch (error) {
+                logTest('error', 'Error testing token tampering: ' + error.message);
+            }
+        }
+        
+        async function testTokenExpiry() {
+            logTest('info', 'Testing token expiry...');
+            logTest('warning', 'Note: This test requires waiting for token timeout or server-side simulation');
+            
+            // For a real test, we would need to wait for the token timeout
+            // or have a server-side endpoint that can simulate expired tokens
+            logTest('info', 'Token expiry test would require server-side simulation');
+        }
+        
+        async function testMissingToken() {
+            logTest('info', 'Testing missing token protection...');
+            
+            try {
+                const isValid = await csrfInstance.validateToken('', 'csrf-test-form');
+                if (!isValid) {
+                    logTest('success', 'Missing token protection working - empty token rejected');
+                } else {
+                    logTest('error', 'Missing token protection NOT working - empty token accepted');
+                }
+            } catch (error) {
+                logTest('error', 'Error testing missing token: ' + error.message);
+            }
+        }
+        
+        async function testCrossOriginRequest() {
+            logTest('info', 'Testing cross-origin request protection...');
+            logTest('warning', 'This test requires actual cross-origin setup to be fully effective');
+            
+            // This would require a more complex setup with actual cross-origin requests
+            logTest('info', 'Cross-origin test requires full server setup');
+        }
+        
+        async function validateManualToken() {
+            const token = document.getElementById('manual-token').value;
+            const formId = document.getElementById('manual-form-id').value || null;
+            
+            if (!token) {
+                logTest('warning', 'Enter a token to validate');
+                return;
+            }
+            
+            if (!csrfInstance) {
+                logTest('error', 'CSRF instance not available');
+                return;
+            }
+            
+            try {
+                const isValid = await csrfInstance.validateToken(token, formId);
+                if (isValid) {
+                    logTest('success', 'Manual token is valid');
+                } else {
+                    logTest('error', 'Manual token is invalid');
+                }
+            } catch (error) {
+                logTest('error', 'Error validating manual token: ' + error.message);
+            }
+        }
+        
+        async function generateTokenForForm() {
+            const formId = document.getElementById('manual-form-id').value || null;
+            
+            if (!csrfInstance) {
+                logTest('error', 'CSRF instance not available');
+                return;
+            }
+            
+            try {
+                const token = await csrfInstance.generateToken(formId);
+                if (token) {
+                    document.getElementById('manual-token').value = token;
+                    logTest('success', 'Generated token for form: ' + (formId || 'global'));
+                    updateTokenStats();
+                } else {
+                    logTest('error', 'Failed to generate token for form');
+                }
+            } catch (error) {
+                logTest('error', 'Error generating token for form: ' + error.message);
+            }
+        }
+        
+        async function submitWithoutCSRF() {
+            logTest('warning', 'Attempting form submission without CSRF token...');
+            
+            // Simulate a form submission without CSRF protection
+            const formData = new FormData();
+            formData.append('test_name', document.getElementById('test-name').value);
+            formData.append('test_email', document.getElementById('test-email').value);
+            formData.append('test_message', document.getElementById('test-message').value);
+            formData.append('form_id', 'csrf-test-form');
+            // Intentionally omit CSRF token
+            
+            logTest('error', 'Form submission without CSRF token should be blocked by server');
+        }
+        
+        function logTest(type, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logItem = {
+                timestamp,
+                type,
+                message
+            };
+            
+            testLog.push(logItem);
+            
+            // Update display
+            const logContainer = document.getElementById('test-log');
+            const logElement = document.createElement('div');
+            logElement.className = `log-item log-${type}`;
+            logElement.innerHTML = `
+                <div class="log-timestamp">${timestamp}</div>
+                <div>${message}</div>
+            `;
+            
+            logContainer.appendChild(logElement);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 100 log entries
+            while (logContainer.children.length > 100) {
+                logContainer.removeChild(logContainer.firstChild);
+            }
+        }
+        
+        function clearTestLog() {
+            testLog = [];
+            document.getElementById('test-log').innerHTML = `
+                <div class="log-item">
+                    <div class="log-timestamp">Cleared</div>
+                    <div>Test log cleared</div>
+                </div>
+            `;
+        }
+        
+        // Form submission handler
+        document.getElementById('csrf-test-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            logTest('info', 'Form submission intercepted - CSRF token should be automatically added');
+            
+            // The CSRF system should automatically add the token to the form
+            const csrfInput = this.querySelector('input[name="csrf_token"]');
+            if (csrfInput && csrfInput.value) {
+                logTest('success', 'CSRF token found in form: ' + csrfInput.value.substring(0, 8) + '...');
+            } else {
+                logTest('error', 'No CSRF token found in form');
+            }
+        });
+    </script>
+</body>
+</html>

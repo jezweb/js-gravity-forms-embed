@@ -207,7 +207,7 @@
          * Render individual field
          */
         renderField: function(field) {
-            let html = '<div class="gf-field gf-field-' + field.type + 
+            let html = '<div class="gfield field_' + field.id + ' gf-field gf-field-' + field.type + 
                       (field.cssClass ? ' ' + field.cssClass : '') + 
                       '" data-field-id="' + field.id + '">';
             
@@ -477,6 +477,11 @@
             
             // Store form data
             form._gfData = formData;
+            
+            // Initialize analytics tracking
+            if (typeof GFEmbedAnalytics !== 'undefined') {
+                GFEmbedAnalytics.init(formData.id, form);
+            }
             
             // Initialize validation
             this.initializeValidation(form, formData);
@@ -781,6 +786,24 @@
         showFieldError: function(field, message) {
             const fieldContainer = field.closest('.gf-field');
             if (!fieldContainer) return;
+            
+            // Track error in analytics
+            const fieldId = fieldContainer.getAttribute('data-field-id');
+            if (fieldId && typeof GFEmbedAnalytics !== 'undefined') {
+                const form = field.closest('form');
+                const formId = form._gfData ? form._gfData.id : null;
+                if (formId) {
+                    // Dispatch custom event for analytics to catch
+                    const event = new CustomEvent('gfFieldError', {
+                        detail: {
+                            fieldId: fieldId,
+                            errorType: 'validation',
+                            errorMessage: message
+                        }
+                    });
+                    form.dispatchEvent(event);
+                }
+            }
             
             // Remove existing error
             const existingError = fieldContainer.querySelector('.gf-error-message');
@@ -1096,6 +1119,17 @@
             
             // Go to page function
             const goToPage = (pageNum) => {
+                // Track page change for analytics
+                if (typeof GFEmbedAnalytics !== 'undefined') {
+                    const event = new CustomEvent('gfPageChange', {
+                        detail: {
+                            previousPage: currentPage,
+                            currentPage: pageNum
+                        }
+                    });
+                    form.dispatchEvent(event);
+                }
+                
                 // Hide all pages
                 pages.forEach(page => page.style.display = 'none');
                 
