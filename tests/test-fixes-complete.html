@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Fixes Test - Gravity Forms JS Embed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        /* Include updated CSS from plugin */
+        :root {
+            --gf-spacing-sm: 10px;
+            --gf-field-margin: 20px;
+            --gf-border-color: #ddd;
+            --gf-text-muted: #666;
+            --gf-error-color: #dc3232;
+        }
+        
+        /* Field Column Layouts */
+        .gf-embedded-form .gf-fields {
+            display: flex;
+            flex-wrap: wrap;
+            margin-left: -10px;
+            margin-right: -10px;
+        }
+        
+        .gf-embedded-form .gf-field {
+            padding-left: 10px;
+            padding-right: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        /* Ensure proper spacing between rows */
+        .gf-embedded-form .gf-field:not(:last-child) {
+            margin-bottom: 20px;
+        }
+        
+        /* Field size classes */
+        .gf-field.gf_left_half,
+        .gf-field.gf_right_half {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+        
+        .gf-field.gf_left_third,
+        .gf-field.gf_middle_third,
+        .gf-field.gf_right_third {
+            flex: 0 0 33.33333%;
+            max-width: 33.33333%;
+        }
+        
+        .gf-field.gf_first_quarter,
+        .gf-field.gf_second_quarter,
+        .gf-field.gf_third_quarter,
+        .gf-field.gf_fourth_quarter {
+            flex: 0 0 25%;
+            max-width: 25%;
+        }
+        
+        /* Complex field containers */
+        .ginput_complex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .ginput_complex > span {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .gf-name-field .gf-name-part {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .gf-name-field .name_prefix {
+            flex: 0 0 20%;
+        }
+        
+        /* Email confirmation field */
+        .gf-email-confirm-field {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .gf-email-confirm-field .ginput_left,
+        .gf-email-confirm-field .ginput_right {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Ensure input containers don't have their own margins */
+        .ginput_container {
+            margin: 0;
+        }
+        
+        /* Sub-labels */
+        .gf-sublabel {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            font-weight: normal;
+            margin-top: 5px;
+        }
+        
+        .gf-sublabel-above .gf-sublabel {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+        
+        /* Basic form styling */
+        .gf-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .gf-input:focus {
+            outline: none;
+            border-color: #0073aa;
+            box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.1);
+        }
+        
+        textarea.gf-input {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .gfield_label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .gf-required {
+            color: #dc3232;
+            font-weight: bold;
+        }
+        
+        .gf-button {
+            background: #0073aa;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        
+        .gf-button:hover {
+            background: #005a87;
+        }
+        
+        .gf-form-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .gf-field.gf_left_half,
+            .gf-field.gf_right_half,
+            .gf-field.gf_left_third,
+            .gf-field.gf_middle_third,
+            .gf-field.gf_right_third,
+            .gf-field.gf_first_quarter,
+            .gf-field.gf_second_quarter,
+            .gf-field.gf_third_quarter,
+            .gf-field.gf_fourth_quarter {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            
+            .ginput_complex {
+                flex-direction: column;
+            }
+            
+            .ginput_complex > span {
+                width: 100%;
+            }
+            
+            .gf-email-confirm-field {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Complete Fixes Test</h1>
+        <p>This page demonstrates all the fixes implemented:</p>
+        
+        <div class="test-section">
+            <h2>✅ Fixed Issues:</h2>
+            <div class="info success">
+                <strong>1. Email Confirmation Field:</strong> Now properly renders with two side-by-side email inputs<br>
+                <strong>2. Textarea Sub-labels:</strong> Sub-labels now work on textarea fields with proper placement<br>
+                <strong>3. Column Layout Spacing:</strong> Fields placed side-by-side now have proper gutter spacing
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>1. Email Confirmation Field Test</h2>
+            <p>The email confirmation field now displays two email inputs side by side with sub-labels.</p>
+            <div id="email-confirm-form" class="form-container"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Textarea with Sub-labels Test</h2>
+            <p>Textarea fields now support sub-labels with different placement options.</p>
+            <div id="textarea-form" class="form-container"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Column Layout with Proper Spacing</h2>
+            <p>Side-by-side fields now have consistent spacing between columns and rows.</p>
+            <div id="column-spacing-form" class="form-container"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. Complete Form Example</h2>
+            <p>A full form demonstrating all features working together.</p>
+            <div id="complete-form" class="form-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // Mock GravityFormsEmbed SDK
+        window.GravityFormsEmbed = {
+            renderForm: function(formData, container) {
+                const formHtml = `
+                    <form class="gf-embedded-form gf-form-${formData.id}">
+                        ${formData.displayTitle ? `<h3 class="gf-form-title">${formData.title}</h3>` : ''}
+                        <div class="gf-fields">
+                            ${formData.fields.map(field => this.renderField(field, formData)).join('')}
+                        </div>
+                        <div class="gf-form-footer">
+                            <button type="submit" class="gf-button">${formData.button.text}</button>
+                        </div>
+                    </form>
+                `;
+                container.innerHTML = formHtml;
+            },
+            
+            renderField: function(field, formData) {
+                const cssClasses = ['gfield', `field_${field.id}`, `gf-field`, `gf-field-${field.type}`];
+                if (field.cssClass) cssClasses.push(field.cssClass);
+                if (field.size) cssClasses.push(`gfield_size_${field.size}`);
+                
+                const subLabelPlacement = field.subLabelPlacement || formData.subLabelPlacement || 'below';
+                
+                return `
+                    <div class="${cssClasses.join(' ')}" data-field-id="${field.id}">
+                        ${field.label ? `<label class="gfield_label">${field.label}${field.isRequired ? ' <span class="gf-required">*</span>' : ''}</label>` : ''}
+                        <div class="ginput_container ginput_container_${field.type} gf-sublabel-${subLabelPlacement}">
+                            ${this.renderFieldInput(field, formData)}
+                        </div>
+                    </div>
+                `;
+            },
+            
+            renderFieldInput: function(field, formData) {
+                const inputId = `input_${field.id}`;
+                const inputName = `input_${field.id}`;
+                const subLabelPlacement = field.subLabelPlacement || formData?.subLabelPlacement || 'below';
+                
+                switch(field.type) {
+                    case 'text':
+                    case 'email':
+                        let html = '';
+                        if (field.inputSubLabel && subLabelPlacement === 'above' && subLabelPlacement !== 'hidden') {
+                            html += `<label for="${inputId}" class="gf-sublabel">${field.inputSubLabel}</label>`;
+                        }
+                        html += `<input type="${field.type}" id="${inputId}" name="${inputName}" class="gf-input"${field.isRequired ? ' required' : ''}>`;
+                        if (field.inputSubLabel && subLabelPlacement === 'below' && subLabelPlacement !== 'hidden') {
+                            html += `<label for="${inputId}" class="gf-sublabel">${field.inputSubLabel}</label>`;
+                        }
+                        return html;
+                        
+                    case 'textarea':
+                        let textareaHtml = '';
+                        if (field.inputSubLabel && subLabelPlacement === 'above' && subLabelPlacement !== 'hidden') {
+                            textareaHtml += `<label for="${inputId}" class="gf-sublabel">${field.inputSubLabel}</label>`;
+                        }
+                        textareaHtml += `<textarea id="${inputId}" name="${inputName}" class="gf-input"${field.isRequired ? ' required' : ''}></textarea>`;
+                        if (field.inputSubLabel && subLabelPlacement === 'below' && subLabelPlacement !== 'hidden') {
+                            textareaHtml += `<label for="${inputId}" class="gf-sublabel">${field.inputSubLabel}</label>`;
+                        }
+                        return textareaHtml;
+                        
+                    case 'email_confirm':
+                        return this.renderEmailConfirmField(field, formData);
+                        
+                    case 'name':
+                        return this.renderNameField(field, formData);
+                }
+                return '';
+            },
+            
+            renderEmailConfirmField: function(field, formData) {
+                const fieldId = field.id;
+                const subLabelPlacement = field.subLabelPlacement || formData?.subLabelPlacement || 'below';
+                let html = '<div class="gf-email-confirm-field ginput_complex">';
+                
+                const inputs = [
+                    { id: fieldId, label: 'Enter Email', sublabel: 'Enter Email' },
+                    { id: fieldId + '.2', label: 'Confirm Email', sublabel: 'Confirm Email' }
+                ];
+                
+                inputs.forEach((input, index) => {
+                    const inputId = `input_${input.id}`;
+                    const spanClass = index === 0 ? 'ginput_left' : 'ginput_right';
+                    
+                    html += `<span class="${spanClass} gf-email-confirm-part">`;
+                    if (subLabelPlacement === 'above' && subLabelPlacement !== 'hidden') {
+                        html += `<label for="${inputId}" class="gf-sublabel">${input.sublabel}</label>`;
+                    }
+                    html += `<input type="email" id="${inputId}" name="${inputId}" class="gf-input"${field.isRequired ? ' required' : ''}>`;
+                    if (subLabelPlacement === 'below' && subLabelPlacement !== 'hidden') {
+                        html += `<label for="${inputId}" class="gf-sublabel">${input.sublabel}</label>`;
+                    }
+                    html += '</span>';
+                });
+                
+                html += '</div>';
+                return html;
+            },
+            
+            renderNameField: function(field, formData) {
+                const fieldId = field.id;
+                const subLabelPlacement = field.subLabelPlacement || formData?.subLabelPlacement || 'below';
+                let html = '<div class="gf-name-field ginput_complex">';
+                
+                const parts = [
+                    { id: fieldId + '.3', label: 'First', name: 'first' },
+                    { id: fieldId + '.6', label: 'Last', name: 'last' }
+                ];
+                
+                parts.forEach(part => {
+                    html += `<span class="name_${part.name} ginput_name_${part.name} gf-name-part">`;
+                    if (subLabelPlacement === 'above' && subLabelPlacement !== 'hidden') {
+                        html += `<label for="input_${part.id}" class="gf-sublabel">${part.label}</label>`;
+                    }
+                    html += `<input type="text" id="input_${part.id}" name="input_${part.id}" class="gf-input">`;
+                    if (subLabelPlacement === 'below' && subLabelPlacement !== 'hidden') {
+                        html += `<label for="input_${part.id}" class="gf-sublabel">${part.label}</label>`;
+                    }
+                    html += '</span>';
+                });
+                
+                html += '</div>';
+                return html;
+            }
+        };
+
+        // Test data for forms
+        const emailConfirmFormData = {
+            id: 1,
+            title: "Email Confirmation Field",
+            displayTitle: true,
+            button: { text: "Submit" },
+            subLabelPlacement: "below",
+            fields: [
+                {
+                    id: 1,
+                    type: "email_confirm",
+                    label: "Email Address",
+                    isRequired: true,
+                    subLabelPlacement: "below"
+                }
+            ]
+        };
+
+        const textareaFormData = {
+            id: 2,
+            title: "Textarea Sub-label Test",
+            displayTitle: true,
+            button: { text: "Submit" },
+            fields: [
+                {
+                    id: 2,
+                    type: "textarea",
+                    label: "Comments (Sub-label Below)",
+                    inputSubLabel: "Please enter your comments here",
+                    subLabelPlacement: "below",
+                    isRequired: false
+                },
+                {
+                    id: 3,
+                    type: "textarea",
+                    label: "Feedback (Sub-label Above)",
+                    inputSubLabel: "Your feedback is important to us",
+                    subLabelPlacement: "above",
+                    isRequired: false
+                },
+                {
+                    id: 4,
+                    type: "textarea",
+                    label: "Notes (No Sub-label)",
+                    subLabelPlacement: "hidden",
+                    isRequired: false
+                }
+            ]
+        };
+
+        const columnSpacingFormData = {
+            id: 3,
+            title: "Column Layout Spacing",
+            displayTitle: true,
+            button: { text: "Submit" },
+            fields: [
+                {
+                    id: 5,
+                    type: "text",
+                    label: "First Name",
+                    cssClass: "gf_left_half",
+                    isRequired: true
+                },
+                {
+                    id: 6,
+                    type: "text",
+                    label: "Last Name",
+                    cssClass: "gf_right_half",
+                    isRequired: true
+                },
+                {
+                    id: 7,
+                    type: "email",
+                    label: "Email",
+                    cssClass: "gf_left_half",
+                    isRequired: true
+                },
+                {
+                    id: 8,
+                    type: "text",
+                    label: "Phone",
+                    cssClass: "gf_right_half",
+                    isRequired: false
+                },
+                {
+                    id: 9,
+                    type: "text",
+                    label: "City",
+                    cssClass: "gf_left_third",
+                    isRequired: false
+                },
+                {
+                    id: 10,
+                    type: "text",
+                    label: "State",
+                    cssClass: "gf_middle_third",
+                    isRequired: false
+                },
+                {
+                    id: 11,
+                    type: "text",
+                    label: "Zip",
+                    cssClass: "gf_right_third",
+                    isRequired: false
+                }
+            ]
+        };
+
+        const completeFormData = {
+            id: 4,
+            title: "Complete Registration Form",
+            displayTitle: true,
+            button: { text: "Register" },
+            subLabelPlacement: "below",
+            fields: [
+                {
+                    id: 12,
+                    type: "name",
+                    label: "Full Name",
+                    nameFormat: "normal",
+                    isRequired: true
+                },
+                {
+                    id: 13,
+                    type: "email_confirm",
+                    label: "Email Address",
+                    isRequired: true
+                },
+                {
+                    id: 14,
+                    type: "text",
+                    label: "Company",
+                    cssClass: "gf_left_half",
+                    inputSubLabel: "Enter your company name",
+                    isRequired: false
+                },
+                {
+                    id: 15,
+                    type: "text",
+                    label: "Job Title",
+                    cssClass: "gf_right_half",
+                    inputSubLabel: "Your position",
+                    isRequired: false
+                },
+                {
+                    id: 16,
+                    type: "textarea",
+                    label: "Additional Information",
+                    inputSubLabel: "Tell us more about your requirements",
+                    subLabelPlacement: "above",
+                    isRequired: false
+                }
+            ]
+        };
+
+        // Render all forms
+        window.GravityFormsEmbed.renderForm(emailConfirmFormData, document.getElementById('email-confirm-form'));
+        window.GravityFormsEmbed.renderForm(textareaFormData, document.getElementById('textarea-form'));
+        window.GravityFormsEmbed.renderForm(columnSpacingFormData, document.getElementById('column-spacing-form'));
+        window.GravityFormsEmbed.renderForm(completeFormData, document.getElementById('complete-form'));
+    </script>
+</body>
+</html>

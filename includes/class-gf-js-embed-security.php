@@ -318,10 +318,18 @@ class GF_JS_Embed_Security {
      * Validate honeypot field
      */
     public static function validate_honeypot($form_id, $submitted_data) {
+        // Get form settings to check if honeypot is enabled
+        $settings = GF_JS_Embed_Admin::get_form_settings($form_id);
+        if (!$settings['honeypot_enabled']) {
+            return true; // Honeypot validation disabled
+        }
+        
         $honeypot_field = get_transient('gf_honeypot_' . $form_id);
         
         if (!$honeypot_field) {
-            return false; // Honeypot field expired or not found
+            // No honeypot field set - allow submission but log warning
+            error_log('GF JS Embed: No honeypot field found for form ' . $form_id);
+            return true;
         }
         
         // Check if honeypot field was filled (indicates bot)

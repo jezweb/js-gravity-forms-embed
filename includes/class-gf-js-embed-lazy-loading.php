@@ -242,28 +242,30 @@ class GF_JS_Embed_Lazy_Loading {
      */
     private function create_skeleton_placeholder($form_id, $atts, $settings) {
         // Try to get form structure for skeleton
-        if (class_exists('GFAPI') && GFAPI::form_exists($form_id)) {
+        if (class_exists('GFAPI')) {
             $form = GFAPI::get_form($form_id);
-            $skeleton_fields = '';
-            
-            $field_count = min(count($form['fields']), 5); // Limit skeleton fields
-            for ($i = 0; $i < $field_count; $i++) {
-                $skeleton_fields .= '
-                    <div class="gf-skeleton-field">
-                        <div class="gf-skeleton-label"></div>
-                        <div class="gf-skeleton-input"></div>
-                    </div>';
+            if ($form) {
+                $skeleton_fields = '';
+                
+                $field_count = min(count($form['fields']), 5); // Limit skeleton fields
+                for ($i = 0; $i < $field_count; $i++) {
+                    $skeleton_fields .= '
+                        <div class="gf-skeleton-field">
+                            <div class="gf-skeleton-label"></div>
+                            <div class="gf-skeleton-input"></div>
+                        </div>';
+                }
+                
+                return sprintf(
+                    '<div class="gf-lazy-placeholder gf-lazy-skeleton">
+                        <div class="gf-skeleton-title"></div>
+                        <div class="gf-skeleton-description"></div>
+                        %s
+                        <div class="gf-skeleton-button"></div>
+                    </div>',
+                    $skeleton_fields
+                );
             }
-            
-            return sprintf(
-                '<div class="gf-lazy-placeholder gf-lazy-skeleton">
-                    <div class="gf-skeleton-title"></div>
-                    <div class="gf-skeleton-description"></div>
-                    %s
-                    <div class="gf-skeleton-button"></div>
-                </div>',
-                $skeleton_fields
-            );
         }
         
         // Fallback to generic skeleton
@@ -354,9 +356,9 @@ class GF_JS_Embed_Lazy_Loading {
      */
     private function get_button_text($form_id, $atts, $settings) {
         // Try to get form title
-        if (class_exists('GFAPI') && GFAPI::form_exists($form_id)) {
+        if (class_exists('GFAPI')) {
             $form = GFAPI::get_form($form_id);
-            if (!empty($form['title'])) {
+            if ($form && !empty($form['title'])) {
                 return sprintf(__('Load "%s" Form', 'gf-js-embed'), $form['title']);
             }
         }

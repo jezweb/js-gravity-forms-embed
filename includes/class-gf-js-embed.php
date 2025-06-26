@@ -73,6 +73,9 @@ class GF_JavaScript_Embed {
         
         add_action('template_redirect', [$this, 'serve_embed_script']);
         
+        // Check if we need to flush rewrite rules
+        $this->maybe_flush_rewrite_rules();
+        
         // Add cron job handlers
         add_action('gf_js_embed_analytics_cleanup', [$this, 'cleanup_analytics_data']);
         add_action('gf_js_embed_analytics_aggregate', [$this, 'aggregate_analytics_data']);
@@ -122,6 +125,19 @@ class GF_JavaScript_Embed {
             header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
             header('Access-Control-Allow-Headers: Content-Type, Authorization');
             header('Access-Control-Allow-Credentials: true');
+        }
+    }
+    
+    /**
+     * Maybe flush rewrite rules if needed
+     */
+    private function maybe_flush_rewrite_rules() {
+        $rules_version = get_option('gf_js_embed_rewrite_rules_version', '');
+        $current_version = GF_JS_EMBED_VERSION;
+        
+        if ($rules_version !== $current_version) {
+            flush_rewrite_rules();
+            update_option('gf_js_embed_rewrite_rules_version', $current_version);
         }
     }
     
@@ -353,7 +369,7 @@ class GF_JavaScript_Embed {
                         // Remove loading class
                         var container = document.getElementById(config.targetId);
                         if (container) {
-                            container.classList.remove('loading');
+                            container.classList.remove("loading");
                         }
                     }
                 })();

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Column Layouts - Gravity Forms JS Embed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-container {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .info {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .code {
+            background: #f5f5f5;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Column Layouts & Sub-Label Placement Test</h1>
+        
+        <div class="test-section">
+            <h2>1. Column Layout Test</h2>
+            <p>This form demonstrates different field column layouts:</p>
+            <div class="info">
+                - Full width field (100%)<br>
+                - Two half-width fields side by side (50% each)<br>
+                - Three third-width fields (33.33% each)<br>
+                - Four quarter-width fields (25% each)
+            </div>
+            <div id="column-form" class="form-container"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. Sub-Label Placement Test</h2>
+            <p>This form shows different sub-label placements for complex fields:</p>
+            <div class="info">
+                - Name field with sub-labels below (default)<br>
+                - Name field with sub-labels above<br>
+                - Name field with hidden sub-labels
+            </div>
+            <div id="sublabel-form" class="form-container"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. Responsive Test</h2>
+            <p>Resize your browser to see how columns stack on mobile devices (< 768px width).</p>
+            <div class="info">
+                On mobile, all columns will stack to 100% width for better usability.
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>4. CSS Classes Reference</h2>
+            <div class="code">
+/* Column Layout Classes */
+.gf_left_half, .gf_right_half - 50% width
+.gf_left_third, .gf_middle_third, .gf_right_third - 33.33% width
+.gf_first_quarter, .gf_second_quarter, .gf_third_quarter, .gf_fourth_quarter - 25% width
+
+/* Field Size Classes */
+.gfield_size_small - 25% width
+.gfield_size_medium - 50% width
+.gfield_size_large - 100% width (default)
+
+/* Sub-Label Classes */
+.gf-sublabel-below - Sub-labels appear below inputs (default)
+.gf-sublabel-above - Sub-labels appear above inputs
+.gf-sublabel-hidden - Sub-labels are hidden
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock form data for column layout test
+        const columnFormData = {
+            id: 1,
+            title: "Column Layout Demo",
+            displayTitle: true,
+            displayDescription: false,
+            button: { text: "Submit" },
+            subLabelPlacement: "below",
+            fields: [
+                {
+                    id: 1,
+                    type: "text",
+                    label: "Full Width Field (100%)",
+                    cssClass: "",
+                    isRequired: false
+                },
+                {
+                    id: 2,
+                    type: "text",
+                    label: "Left Half (50%)",
+                    cssClass: "gf_left_half",
+                    isRequired: false
+                },
+                {
+                    id: 3,
+                    type: "text",
+                    label: "Right Half (50%)",
+                    cssClass: "gf_right_half",
+                    isRequired: false
+                },
+                {
+                    id: 4,
+                    type: "text",
+                    label: "First Third (33%)",
+                    cssClass: "gf_left_third",
+                    isRequired: false
+                },
+                {
+                    id: 5,
+                    type: "text",
+                    label: "Middle Third (33%)",
+                    cssClass: "gf_middle_third",
+                    isRequired: false
+                },
+                {
+                    id: 6,
+                    type: "text",
+                    label: "Last Third (33%)",
+                    cssClass: "gf_right_third",
+                    isRequired: false
+                },
+                {
+                    id: 7,
+                    type: "text",
+                    label: "1st Quarter (25%)",
+                    cssClass: "gf_first_quarter",
+                    size: "small",
+                    isRequired: false
+                },
+                {
+                    id: 8,
+                    type: "text",
+                    label: "2nd Quarter (25%)",
+                    cssClass: "gf_second_quarter",
+                    size: "small",
+                    isRequired: false
+                },
+                {
+                    id: 9,
+                    type: "text",
+                    label: "3rd Quarter (25%)",
+                    cssClass: "gf_third_quarter",
+                    size: "small",
+                    isRequired: false
+                },
+                {
+                    id: 10,
+                    type: "text",
+                    label: "4th Quarter (25%)",
+                    cssClass: "gf_fourth_quarter",
+                    size: "small",
+                    isRequired: false
+                }
+            ]
+        };
+
+        // Mock form data for sub-label test
+        const subLabelFormData = {
+            id: 2,
+            title: "Sub-Label Placement Demo",
+            displayTitle: true,
+            displayDescription: false,
+            button: { text: "Submit" },
+            fields: [
+                {
+                    id: 11,
+                    type: "name",
+                    label: "Name (Sub-labels Below - Default)",
+                    nameFormat: "normal",
+                    subLabelPlacement: "below",
+                    isRequired: true
+                },
+                {
+                    id: 12,
+                    type: "name",
+                    label: "Name (Sub-labels Above)",
+                    nameFormat: "normal",
+                    subLabelPlacement: "above",
+                    isRequired: false
+                },
+                {
+                    id: 13,
+                    type: "name",
+                    label: "Name (Sub-labels Hidden)",
+                    nameFormat: "normal",
+                    subLabelPlacement: "hidden",
+                    isRequired: false
+                },
+                {
+                    id: 14,
+                    type: "name",
+                    label: "Extended Name Format",
+                    nameFormat: "extended",
+                    subLabelPlacement: "below",
+                    isRequired: false
+                }
+            ]
+        };
+
+        // Simulate GravityFormsEmbed SDK
+        window.GravityFormsEmbed = {
+            renderForm: function(formData, container) {
+                // This simulates the actual SDK renderForm method
+                const formHtml = `
+                    <form class="gf-embedded-form gf-form-${formData.id}">
+                        ${formData.displayTitle ? `<h3 class="gf-form-title">${formData.title}</h3>` : ''}
+                        <div class="gf-fields">
+                            ${formData.fields.map(field => this.renderField(field, formData)).join('')}
+                        </div>
+                        <div class="gf-form-footer">
+                            <button type="submit" class="gf-button">${formData.button.text}</button>
+                        </div>
+                    </form>
+                `;
+                container.innerHTML = formHtml;
+            },
+            
+            renderField: function(field, formData) {
+                const cssClasses = ['gfield', `field_${field.id}`, `gf-field`, `gf-field-${field.type}`];
+                if (field.cssClass) cssClasses.push(field.cssClass);
+                if (field.size) cssClasses.push(`gfield_size_${field.size}`);
+                
+                const subLabelPlacement = field.subLabelPlacement || formData.subLabelPlacement || 'below';
+                
+                return `
+                    <div class="${cssClasses.join(' ')}" data-field-id="${field.id}">
+                        ${field.label ? `<label class="gfield_label">${field.label}${field.isRequired ? ' <span class="gf-required">*</span>' : ''}</label>` : ''}
+                        <div class="ginput_container ginput_container_${field.type} gf-sublabel-${subLabelPlacement}">
+                            ${this.renderFieldInput(field, formData)}
+                        </div>
+                    </div>
+                `;
+            },
+            
+            renderFieldInput: function(field, formData) {
+                if (field.type === 'text') {
+                    return `<input type="text" id="input_${field.id}" name="input_${field.id}" class="gf-input">`;
+                } else if (field.type === 'name') {
+                    return this.renderNameField(field, formData);
+                }
+                return '';
+            },
+            
+            renderNameField: function(field, formData) {
+                const subLabelPlacement = field.subLabelPlacement || formData.subLabelPlacement || 'below';
+                const nameFormat = field.nameFormat || 'normal';
+                
+                let html = '<div class="gf-name-field ginput_complex">';
+                
+                if (nameFormat === 'normal') {
+                    const parts = [
+                        { id: field.id + '.3', label: 'First', name: 'first' },
+                        { id: field.id + '.6', label: 'Last', name: 'last' }
+                    ];
+                    
+                    parts.forEach(part => {
+                        html += `<span class="name_${part.name} ginput_name_${part.name} gf-name-part">`;
+                        if (subLabelPlacement === 'above' && subLabelPlacement !== 'hidden') {
+                            html += `<label for="input_${part.id}" class="gf-sublabel">${part.label}</label>`;
+                        }
+                        html += `<input type="text" id="input_${part.id}" name="input_${part.id}" class="gf-input gf-name-${part.name}">`;
+                        if (subLabelPlacement === 'below' && subLabelPlacement !== 'hidden') {
+                            html += `<label for="input_${part.id}" class="gf-sublabel">${part.label}</label>`;
+                        }
+                        html += '</span>';
+                    });
+                } else if (nameFormat === 'extended') {
+                    const parts = [
+                        { id: field.id + '.2', label: 'Prefix', name: 'prefix', type: 'select' },
+                        { id: field.id + '.3', label: 'First', name: 'first' },
+                        { id: field.id + '.4', label: 'Middle', name: 'middle' },
+                        { id: field.id + '.6', label: 'Last', name: 'last' },
+                        { id: field.id + '.8', label: 'Suffix', name: 'suffix' }
+                    ];
+                    
+                    parts.forEach(part => {
+                        html += `<span class="name_${part.name} ginput_name_${part.name} gf-name-part">`;
+                        if (subLabelPlacement === 'above' && subLabelPlacement !== 'hidden') {
+                            html += `<label for="input_${part.id}" class="gf-sublabel">${part.label}</label>`;
+                        }
+                        
+                        if (part.type === 'select') {
+                            html += `<select id="input_${part.id}" name="input_${part.id}" class="gf-input gf-name-prefix">
+                                <option value=""></option>
+                                <option value="Mr.">Mr.</option>
+                                <option value="Mrs.">Mrs.</option>
+                                <option value="Ms.">Ms.</option>
+                                <option value="Dr.">Dr.</option>
+                            </select>`;
+                        } else {
+                            html += `<input type="text" id="input_${part.id}" name="input_${part.id}" class="gf-input gf-name-${part.name}">`;
+                        }
+                        
+                        if (subLabelPlacement === 'below' && subLabelPlacement !== 'hidden') {
+                            html += `<label for="input_${part.id}" class="gf-sublabel">${part.label}</label>`;
+                        }
+                        html += '</span>';
+                    });
+                }
+                
+                html += '</div>';
+                return html;
+            }
+        };
+
+        // Render the forms
+        window.GravityFormsEmbed.renderForm(columnFormData, document.getElementById('column-form'));
+        window.GravityFormsEmbed.renderForm(subLabelFormData, document.getElementById('sublabel-form'));
+
+        // Add the CSS from the plugin
+        const style = document.createElement('style');
+        style.textContent = `
+            /* Include the base CSS from the plugin */
+            .gf-embedded-form .gf-fields {
+                display: flex;
+                flex-wrap: wrap;
+                margin-left: -10px;
+                margin-right: -10px;
+            }
+            
+            .gf-embedded-form .gf-field {
+                padding-left: 10px;
+                padding-right: 10px;
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            /* Field size classes */
+            .gf-field.gfield_size_small {
+                flex: 0 0 25%;
+                max-width: 25%;
+            }
+            
+            .gf-field.gfield_size_medium {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+            
+            /* Multi-column layout classes */
+            .gf-field.gf_left_half,
+            .gf-field.gf_right_half {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+            
+            .gf-field.gf_left_third,
+            .gf-field.gf_middle_third,
+            .gf-field.gf_right_third {
+                flex: 0 0 33.33333%;
+                max-width: 33.33333%;
+            }
+            
+            .gf-field.gf_first_quarter,
+            .gf-field.gf_second_quarter,
+            .gf-field.gf_third_quarter,
+            .gf-field.gf_fourth_quarter {
+                flex: 0 0 25%;
+                max-width: 25%;
+            }
+            
+            /* Complex field containers */
+            .ginput_complex {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .ginput_complex > span {
+                flex: 1;
+                min-width: 0;
+            }
+            
+            .gf-name-field .name_prefix {
+                flex: 0 0 20%;
+            }
+            
+            .gf-name-field .gf-name-part {
+                display: flex;
+                flex-direction: column;
+            }
+            
+            /* Sub-labels */
+            .gf-sublabel {
+                display: block;
+                font-size: 13px;
+                color: #666;
+                font-weight: normal;
+                margin-top: 5px;
+            }
+            
+            .gf-sublabel-above .gf-sublabel {
+                margin-top: 0;
+                margin-bottom: 5px;
+            }
+            
+            /* Basic styling */
+            .gf-input {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+            
+            .gfield_label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+            
+            .gf-required {
+                color: #dc3232;
+            }
+            
+            .gf-button {
+                background: #0073aa;
+                color: white;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 16px;
+            }
+            
+            .gf-button:hover {
+                background: #005a87;
+            }
+            
+            /* Responsive */
+            @media (max-width: 768px) {
+                .gf-field.gfield_size_small,
+                .gf-field.gfield_size_medium,
+                .gf-field.gf_left_half,
+                .gf-field.gf_right_half,
+                .gf-field.gf_left_third,
+                .gf-field.gf_middle_third,
+                .gf-field.gf_right_third,
+                .gf-field.gf_first_quarter,
+                .gf-field.gf_second_quarter,
+                .gf-field.gf_third_quarter,
+                .gf-field.gf_fourth_quarter {
+                    flex: 0 0 100%;
+                    max-width: 100%;
+                }
+                
+                .ginput_complex {
+                    flex-direction: column;
+                }
+                
+                .ginput_complex > span {
+                    width: 100%;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
