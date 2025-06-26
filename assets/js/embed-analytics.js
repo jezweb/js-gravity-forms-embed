@@ -9,7 +9,7 @@
         config: {
             trackingEnabled: true,
             trackingInterval: 1000, // Send updates every second
-            apiEndpoint: '/wp-json/gf-embed/v1/analytics/track',
+            apiEndpoint: null, // Will be set dynamically
             sessionTimeout: 30 * 60 * 1000, // 30 minutes
             respectDoNotTrack: true,
             anonymizeIPs: true,
@@ -30,8 +30,21 @@
         /**
          * Initialize analytics tracking
          */
-        init(formId, formElement) {
+        init(formId, formElement, options = {}) {
             if (!this.config.trackingEnabled) return;
+            
+            // Set API endpoint from GravityFormsEmbed if available
+            if (window.GravityFormsEmbed && window.GravityFormsEmbed.apiUrl) {
+                this.config.apiEndpoint = window.GravityFormsEmbed.apiUrl + '/analytics/track';
+            } else {
+                console.warn('GF Embed Analytics: API URL not available, analytics disabled');
+                return;
+            }
+            
+            // Store API key if provided
+            if (options.apiKey) {
+                this.state.apiKey = options.apiKey;
+            }
             
             // Check privacy settings
             if (!this.checkPrivacyConsent()) {
@@ -301,12 +314,20 @@
          * Send event to server
          */
         async sendEvent(event) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            };
+            
+            // Add API key if available
+            if (this.state.apiKey) {
+                headers['X-API-Key'] = this.state.apiKey;
+            }
+            
             const response = await fetch(this.config.apiEndpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
+                headers: headers,
+                credentials: 'include',
                 body: JSON.stringify(event)
             });
             

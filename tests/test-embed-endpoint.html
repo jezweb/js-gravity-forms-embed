@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Embed Endpoint</title>
+</head>
+<body>
+    <h1>Testing gf-js-embed/v1/embed.js Endpoint</h1>
+    
+    <div id="status">Testing...</div>
+    
+    <script>
+        // Get the site URL from the current location
+        const siteUrl = window.location.origin;
+        const embedUrl = siteUrl + '/gf-js-embed/v1/embed.js';
+        
+        // Test if the endpoint is accessible
+        fetch(embedUrl)
+            .then(response => {
+                const statusDiv = document.getElementById('status');
+                if (response.ok) {
+                    statusDiv.innerHTML = '<p style="color: green;">✓ Endpoint is working! Status: ' + response.status + '</p>';
+                    statusDiv.innerHTML += '<p>URL: ' + embedUrl + '</p>';
+                    statusDiv.innerHTML += '<p>Content-Type: ' + response.headers.get('content-type') + '</p>';
+                    
+                    // Load the script dynamically
+                    const script = document.createElement('script');
+                    script.src = embedUrl;
+                    script.onload = function() {
+                        statusDiv.innerHTML += '<p style="color: green;">✓ Script loaded successfully!</p>';
+                        if (window.GravityFormsEmbed) {
+                            statusDiv.innerHTML += '<p style="color: green;">✓ GravityFormsEmbed object is available!</p>';
+                            statusDiv.innerHTML += '<p>Version: ' + window.GravityFormsEmbed.version + '</p>';
+                        }
+                    };
+                    script.onerror = function() {
+                        statusDiv.innerHTML += '<p style="color: red;">✗ Script failed to load</p>';
+                    };
+                    document.head.appendChild(script);
+                } else {
+                    statusDiv.innerHTML = '<p style="color: red;">✗ Endpoint returned error! Status: ' + response.status + '</p>';
+                    statusDiv.innerHTML += '<p>URL: ' + embedUrl + '</p>';
+                }
+            })
+            .catch(error => {
+                const statusDiv = document.getElementById('status');
+                statusDiv.innerHTML = '<p style="color: red;">✗ Failed to fetch endpoint: ' + error.message + '</p>';
+                statusDiv.innerHTML += '<p>URL: ' + embedUrl + '</p>';
+            });
+    </script>
+</body>
+</html>

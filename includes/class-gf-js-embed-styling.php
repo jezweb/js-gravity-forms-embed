@@ -200,7 +200,7 @@ class GF_JS_Embed_Styling {
 }
 
 .gf-field {
-    margin-bottom: var(--gf-field-margin);
+    /* margin-bottom handled by column layout */
 }
 
 .gf-field label {
@@ -276,6 +276,189 @@ class GF_JS_Embed_Styling {
     font-size: var(--gf-font-size-small);
     color: var(--gf-text-muted);
     margin-top: var(--gf-spacing-xs);
+}
+
+/* Sub-labels */
+.gf-sublabel {
+    display: block;
+    font-size: var(--gf-font-size-small);
+    color: var(--gf-text-muted);
+    font-weight: var(--gf-font-weight-normal);
+    margin-top: var(--gf-spacing-xs);
+}
+
+/* Sub-label placement - above */
+.gf-sublabel-above .gf-sublabel {
+    margin-top: 0;
+    margin-bottom: var(--gf-spacing-xs);
+}
+
+/* Complex field containers */
+.ginput_complex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gf-spacing-sm);
+}
+
+.ginput_complex > span {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Name field specific */
+.gf-name-field .gf-name-part {
+    display: flex;
+    flex-direction: column;
+}
+
+.gf-name-field .name_prefix {
+    flex: 0 0 20%;
+}
+
+/* Email confirmation field */
+.gf-email-confirm-field {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gf-spacing-sm);
+}
+
+.gf-email-confirm-field .ginput_left,
+.gf-email-confirm-field .ginput_right {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Ensure input containers do not have their own margins */
+.ginput_container {
+    margin: 0;
+}
+
+/* Field Column Layouts */
+.gf-embedded-form .gf-fields {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: calc(var(--gf-spacing-sm) * -1);
+    margin-right: calc(var(--gf-spacing-sm) * -1);
+}
+
+.gf-embedded-form .gf-field {
+    padding-left: var(--gf-spacing-sm);
+    padding-right: var(--gf-spacing-sm);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Ensure proper spacing between rows */
+.gf-embedded-form .gf-field:not(:last-child) {
+    margin-bottom: var(--gf-field-margin);
+}
+
+/* Field size classes */
+.gf-field.gfield_size_small,
+.gf-field.gf-field-small {
+    flex: 0 0 25%;
+    max-width: 25%;
+}
+
+.gf-field.gfield_size_medium,
+.gf-field.gf-field-medium {
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+.gf-field.gfield_size_large,
+.gf-field.gf-field-large {
+    flex: 0 0 100%;
+    max-width: 100%;
+}
+
+/* Multi-column layout classes */
+.gf-field.gf_left_half {
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+.gf-field.gf_right_half {
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+.gf-field.gf_left_third {
+    flex: 0 0 33.33333%;
+    max-width: 33.33333%;
+}
+
+.gf-field.gf_middle_third {
+    flex: 0 0 33.33333%;
+    max-width: 33.33333%;
+}
+
+.gf-field.gf_right_third {
+    flex: 0 0 33.33333%;
+    max-width: 33.33333%;
+}
+
+.gf-field.gf_first_quarter {
+    flex: 0 0 25%;
+    max-width: 25%;
+}
+
+.gf-field.gf_second_quarter {
+    flex: 0 0 25%;
+    max-width: 25%;
+}
+
+.gf-field.gf_third_quarter {
+    flex: 0 0 25%;
+    max-width: 25%;
+}
+
+.gf-field.gf_fourth_quarter {
+    flex: 0 0 25%;
+    max-width: 25%;
+}
+
+/* List columns */
+.gf-field.gf_list_2col > .ginput_container {
+    width: 50%;
+}
+
+.gf-field.gf_list_3col > .ginput_container {
+    width: 33.33333%;
+}
+
+.gf-field.gf_list_4col > .ginput_container {
+    width: 25%;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+    .gf-field.gfield_size_small,
+    .gf-field.gf-field-small,
+    .gf-field.gfield_size_medium,
+    .gf-field.gf-field-medium,
+    .gf-field.gf_left_half,
+    .gf-field.gf_right_half,
+    .gf-field.gf_left_third,
+    .gf-field.gf_middle_third,
+    .gf-field.gf_right_third,
+    .gf-field.gf_first_quarter,
+    .gf-field.gf_second_quarter,
+    .gf-field.gf_third_quarter,
+    .gf-field.gf_fourth_quarter {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+    
+    .ginput_complex {
+        flex-direction: column;
+    }
+    
+    .ginput_complex > span {
+        width: 100%;
+    }
 }
 
 /* Error messages */

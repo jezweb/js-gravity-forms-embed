@@ -28,6 +28,7 @@ class GF_JS_Embed_API {
      */
     private function __construct() {
         add_action('rest_api_init', [$this, 'register_rest_routes']);
+        add_filter('rest_pre_serve_request', [$this, 'handle_rest_pre_serve_request'], 10, 4);
     }
     
     /**
@@ -91,7 +92,9 @@ class GF_JS_Embed_API {
             if (GF_JS_Embed_Security::is_domain_allowed($origin)) {
                 header('Access-Control-Allow-Origin: ' . $origin);
                 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-                header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key, X-CSRF-Token');
+                header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key, X-CSRF-Token, X-Requested-With');
+                header('Access-Control-Allow-Credentials: true');
+                header('Access-Control-Max-Age: 86400'); // Cache preflight for 24 hours
                 exit;
             }
         }
@@ -207,17 +210,34 @@ class GF_JS_Embed_API {
     }
     
     /**
+     * Handle REST API pre-serve request to ensure CORS headers are set
+     */
+    public function handle_rest_pre_serve_request($served, $result, $request, $server) {
+        // Only handle our namespace
+        $route = $request->get_route();
+        if (strpos($route, '/gf-embed/v1/') !== 0) {
+            return $served;
+        }
+        
+        // Set CORS headers for all our API responses
+        $this->set_cors_headers();
+        
+        return $served;
+    }
+    
+    /**
      * Get form data
      */
     public function get_form_data($request) {
         $form_id = $request['id'];
         
+        // Get form
+        $form = GFAPI::get_form($form_id);
+        
         // Check if form exists
-        if (!GFAPI::form_exists($form_id)) {
+        if (!$form) {
             return new WP_REST_Response(['success' => false, 'message' => __('Form not found', 'gf-js-embed')], 404);
         }
-        
-        $form = GFAPI::get_form($form_id);
         
         // Check if embedding is enabled
         $settings = GF_JS_Embed_Admin::get_form_settings($form_id);
@@ -270,7 +290,10 @@ class GF_JS_Embed_API {
             'fields' => [],
             'cssClass' => $form['cssClass'] ?? '',
             'enableAnimation' => $form['enableAnimation'] ?? false,
-            'validationSummary' => $form['validationSummary'] ?? false
+            'validationSummary' => $form['validationSummary'] ?? false,
+            'labelPlacement' => $form['labelPlacement'] ?? 'top_label',
+            'subLabelPlacement' => $form['subLabelPlacement'] ?? 'below',
+            'descriptionPlacement' => $form['descriptionPlacement'] ?? 'below'
         ];
         
         // Process fields
@@ -368,6 +391,45 @@ class GF_JS_Embed_API {
                     'text' => $field->previousButton['text'] ?? __('Previous', 'gf-js-embed')
                 ];
                 break;
+                
+            case 'name':
+                $field_data['nameFormat'] = $field->nameFormat ?? 'normal';
+                $field_data['subLabelPlacement'] = $field->subLabelPlacement ?? '';
+                
+                // Include inputs array if available
+                if (!empty($field->inputs)) {
+                    $field_data['inputs'] = [];
+                    foreach ($field->inputs as $input) {
+                        $field_data['inputs'][] = [
+                            'id' => $input['id'],
+                            'label' => $input['label'],
+                            'sublabel' => $input['customLabel'] ?? $input['label'],
+                            'isHidden' => $input['isHidden'] ?? false
+                        ];
+                    }
+                }
+                break;
+                
+            case 'email':
+                // Check if this is an email confirmation field
+                if (!empty($field->emailConfirmEnabled)) {
+                    $field_data['type'] = 'email_confirm';
+                    $field_data['subLabelPlacement'] = $field->subLabelPlacement ?? '';
+                    
+                    // Include inputs array if available
+                    if (!empty($field->inputs)) {
+                        $field_data['inputs'] = [];
+                        foreach ($field->inputs as $input) {
+                            $field_data['inputs'][] = [
+                                'id' => $input['id'],
+                                'label' => $input['label'],
+                                'sublabel' => $input['customLabel'] ?? $input['label'],
+                                'placeholder' => $input['placeholder'] ?? ''
+                            ];
+                        }
+                    }
+                }
+                break;
         }
         
         // Add conditional logic if present
@@ -440,10 +502,19 @@ class GF_JS_Embed_API {
             }
         }
         
-        // Validate form
-        $validation = GFFormDisplay::validate($form, $input_values);
+        // Validate form - use basic validation for now
+        $is_valid = true;
+        $validation_errors = [];
         
-        if ($validation['is_valid']) {
+        // Basic required field validation
+        foreach ($form['fields'] as $field) {
+            if ($field['isRequired'] && empty($input_values['input_' . $field['id']])) {
+                $is_valid = false;
+                $validation_errors[$field['id']] = __('This field is required.', 'gf-js-embed');
+            }
+        }
+        
+        if ($is_valid) {
             // Create entry
             $entry = [
                 'form_id' => $form_id,
@@ -472,17 +543,32 @@ class GF_JS_Embed_API {
             $domain = parse_url($_SERVER['HTTP_REFERER'] ?? '', PHP_URL_HOST);
             GF_JS_Embed_Analytics::track_submission($form_id, $domain, $entry_id);
             
-            // Get confirmation
-            $confirmation = GFFormDisplay::get_confirmation($form, $entry);
+            // Get confirmation message from form settings
+            $confirmation_message = __('Thank you for your submission.', 'gf-js-embed');
+            $confirmation_type = 'message';
+            $confirmation_url = '';
+            
+            // Gravity Forms stores confirmations as an array
+            if (!empty($form['confirmations']) && is_array($form['confirmations'])) {
+                // Get the default confirmation
+                foreach ($form['confirmations'] as $confirmation) {
+                    if (!empty($confirmation['isDefault'])) {
+                        $confirmation_type = $confirmation['type'] ?? 'message';
+                        $confirmation_message = $confirmation['message'] ?? $confirmation_message;
+                        $confirmation_url = $confirmation['url'] ?? '';
+                        break;
+                    }
+                }
+            }
             
             $response = [
                 'success' => true,
                 'entry_id' => $entry_id,
                 'confirmation' => [
-                    'type' => $confirmation['type'] ?? 'message',
-                    'message' => $confirmation['message'] ?? __('Thank you for your submission.', 'gf-js-embed'),
-                    'url' => $confirmation['url'] ?? '',
-                    'pageId' => $confirmation['pageId'] ?? ''
+                    'type' => $confirmation_type,
+                    'message' => $confirmation_message,
+                    'url' => $confirmation_url,
+                    'pageId' => ''
                 ]
             ];
             
@@ -491,16 +577,9 @@ class GF_JS_Embed_API {
             return new WP_REST_Response($response);
         } else {
             // Return validation errors
-            $errors = [];
-            foreach ($form['fields'] as $field) {
-                if (!empty($validation['failed_validation_page'][$field->id])) {
-                    $errors[$field->id] = $field->validation_message ?: __('This field is required.', 'gf-js-embed');
-                }
-            }
-            
             $response = [
                 'success' => false,
-                'errors' => $errors,
+                'errors' => $validation_errors,
                 'message' => __('Please correct the errors below.', 'gf-js-embed')
             ];
             

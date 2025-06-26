@@ -521,7 +521,12 @@ class GF_JS_Embed_Admin {
             'csrf_enabled' => true,
             'spam_detection' => true,
             'bot_detection' => true,
-            'security_level' => 'medium'
+            'security_level' => 'medium',
+            'rate_limit_enabled' => false,
+            'rate_limit_requests' => 60,
+            'rate_limit_window' => 60,
+            'disable_lazy_loading' => false,
+            'lazy_threshold' => '200px'
         ];
         
         $settings = get_option('gf_js_embed_form_' . $form_id, []);

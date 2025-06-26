@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test CORS Fix</title>
+</head>
+<body>
+    <h1>Testing CORS Fix for Gravity Forms Embed API</h1>
+    
+    <div id="status">Testing...</div>
+    
+    <h2>Form Container</h2>
+    <div id="form-container" data-gf-form="1" data-gf-api-key=""></div>
+    
+    <div style="margin-top: 20px; padding: 15px; background: #f0f0f0; border: 1px solid #ddd;">
+        <h3>API Key Required</h3>
+        <p>This form requires an API key. To fix this:</p>
+        <ol>
+            <li>Visit <a href="http://localhost:10053/wp-content/plugins/js-gravity-forms-embed/tests/check-form-settings.php" target="_blank">check-form-settings.php</a> (login required)</li>
+            <li>Either:
+                <ul>
+                    <li>Copy the API key shown and add it to the data-gf-api-key attribute above</li>
+                    <li>Or remove the API key requirement for testing</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+    
+    <script>
+        // Test configuration
+        const apiUrl = 'http://localhost:10053/wp-json/gf-embed/v1';
+        const formId = 1;
+        
+        // Status display
+        const statusDiv = document.getElementById('status');
+        
+        // Test preflight request
+        statusDiv.innerHTML = '<p>Testing preflight request...</p>';
+        
+        fetch(apiUrl + '/form/' + formId, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        })
+        .then(response => {
+            statusDiv.innerHTML += '<p style="color: green;">✓ Preflight request successful!</p>';
+            statusDiv.innerHTML += '<p>Response status: ' + response.status + '</p>';
+            statusDiv.innerHTML += '<p>CORS headers received:</p>';
+            statusDiv.innerHTML += '<ul>';
+            statusDiv.innerHTML += '<li>Access-Control-Allow-Origin: ' + (response.headers.get('access-control-allow-origin') || 'Not set') + '</li>';
+            statusDiv.innerHTML += '<li>Access-Control-Allow-Credentials: ' + (response.headers.get('access-control-allow-credentials') || 'Not set') + '</li>';
+            statusDiv.innerHTML += '</ul>';
+            
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                statusDiv.innerHTML += '<p style="color: green;">✓ API request successful!</p>';
+                statusDiv.innerHTML += '<p>Form data received: ' + JSON.stringify(data).substring(0, 100) + '...</p>';
+            } else {
+                statusDiv.innerHTML += '<p style="color: orange;">⚠ API returned error: ' + data.message + '</p>';
+            }
+        })
+        .catch(error => {
+            statusDiv.innerHTML += '<p style="color: red;">✗ Request failed: ' + error.message + '</p>';
+            statusDiv.innerHTML += '<p>This might be a CORS error. Check the browser console for more details.</p>';
+        });
+        
+        // Also load the embed.js to test the full flow
+        setTimeout(() => {
+            statusDiv.innerHTML += '<hr><p>Loading embed.js script...</p>';
+            const script = document.createElement('script');
+            script.src = 'http://localhost:10053/gf-js-embed/v1/embed.js';
+            script.onload = function() {
+                statusDiv.innerHTML += '<p style="color: green;">✓ Embed script loaded successfully!</p>';
+                if (window.GravityFormsEmbed) {
+                    statusDiv.innerHTML += '<p>Attempting to load form...</p>';
+                    // The SDK should auto-initialize based on data attributes
+                }
+            };
+            script.onerror = function() {
+                statusDiv.innerHTML += '<p style="color: red;">✗ Embed script failed to load</p>';
+            };
+            document.head.appendChild(script);
+        }, 1000);
+    </script>
+</body>
+</html>

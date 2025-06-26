@@ -127,6 +127,9 @@
             const formHtml = this.buildFormHtml(formData, options);
             container.innerHTML = formHtml;
             
+            // Store options on container for later use
+            container._gfOptions = options;
+            
             // Initialize form functionality
             this.initializeForm(formData, container);
         },
@@ -164,7 +167,7 @@
             }
             
             // Render fields
-            html += '<div class="gf-form-fields">';
+            html += '<div class="gf-fields">';
             
             let currentPage = 1;
             formData.fields.forEach(field => {
@@ -176,7 +179,7 @@
                            (currentPage === 1 ? 'block' : 'none') + ';">';
                     currentPage++;
                 } else {
-                    html += this.renderField(field);
+                    html += this.renderField(field, formData);
                 }
             });
             
@@ -206,14 +209,25 @@
         /**
          * Render individual field
          */
-        renderField: function(field) {
-            let html = '<div class="gfield field_' + field.id + ' gf-field gf-field-' + field.type + 
-                      (field.cssClass ? ' ' + field.cssClass : '') + 
-                      '" data-field-id="' + field.id + '">';
+        renderField: function(field, formData) {
+            // Build CSS classes
+            let cssClasses = ['gfield', 'field_' + field.id, 'gf-field', 'gf-field-' + field.type];
+            
+            // Add custom CSS classes
+            if (field.cssClass) {
+                cssClasses.push(field.cssClass);
+            }
+            
+            // Add size class
+            if (field.size) {
+                cssClasses.push('gfield_size_' + field.size);
+            }
+            
+            let html = '<div class="' + cssClasses.join(' ') + '" data-field-id="' + field.id + '">';
             
             // Label
             if (field.label && field.type !== 'html' && field.type !== 'section') {
-                html += '<label for="input_' + field.id + '">';
+                html += '<label class="gfield_label" for="input_' + field.id + '">';
                 html += this.escapeHtml(field.label);
                 if (field.isRequired) {
                     html += ' <span class="gf-required">*</span>';
@@ -221,11 +235,14 @@
                 html += '</label>';
             }
             
-            // Field input
-            html += this.renderFieldInput(field);
+            // Field input container
+            const subLabelPlacement = field.subLabelPlacement || formData.subLabelPlacement || 'below';
+            html += '<div class="ginput_container ginput_container_' + field.type + ' gf-sublabel-' + subLabelPlacement + '">';
+            html += this.renderFieldInput(field, formData);
+            html += '</div>';
             
             // Description
-            if (field.description) {
+            if (field.description && field.descriptionPlacement !== 'above') {
                 html += '<div class="gf-field-description">' + 
                        this.escapeHtml(field.description) + '</div>';
             }
@@ -237,7 +254,7 @@
         /**
          * Render field input based on type
          */
-        renderFieldInput: function(field) {
+        renderFieldInput: function(field, formData) {
             const inputId = 'input_' + field.id;
             const inputName = 'input_' + field.id;
             let html = '';
@@ -247,7 +264,17 @@
                 case 'email':
                 case 'phone':
                 case 'url':
-                    html = '<input type="' + field.type + '" ' +
+                    const inputSubLabel = field.inputSubLabel || '';
+                    const inputSubLabelPlacement = field.subLabelPlacement || formData?.subLabelPlacement || 'below';
+                    
+                    // Add sublabel above if placement is 'above'
+                    if (inputSubLabel && inputSubLabelPlacement === 'above' && inputSubLabelPlacement !== 'hidden') {
+                        html += '<label for="' + inputId + '" class="gf-sublabel">';
+                        html += this.escapeHtml(inputSubLabel);
+                        html += '</label>';
+                    }
+                    
+                    html += '<input type="' + field.type + '" ' +
                           'id="' + inputId + '" ' +
                           'name="' + inputName + '" ' +
                           'class="gf-input" ' +
@@ -255,6 +282,17 @@
                           (field.defaultValue ? 'value="' + this.escapeHtml(field.defaultValue) + '" ' : '') +
                           (field.isRequired ? 'required ' : '') +
                           'aria-required="' + (field.isRequired ? 'true' : 'false') + '">';
+                    
+                    // Add sublabel below if placement is 'below'
+                    if (inputSubLabel && inputSubLabelPlacement === 'below' && inputSubLabelPlacement !== 'hidden') {
+                        html += '<label for="' + inputId + '" class="gf-sublabel">';
+                        html += this.escapeHtml(inputSubLabel);
+                        html += '</label>';
+                    }
+                    break;
+                    
+                case 'email_confirm':
+                    html = this.renderEmailConfirmField(field, formData);
                     break;
                     
                 case 'number':
@@ -271,7 +309,17 @@
                     break;
                     
                 case 'textarea':
-                    html = '<textarea ' +
+                    const textareaSubLabel = field.inputSubLabel || '';
+                    const subLabelPlacement = field.subLabelPlacement || formData?.subLabelPlacement || 'below';
+                    
+                    // Add sublabel above if placement is 'above'
+                    if (textareaSubLabel && subLabelPlacement === 'above' && subLabelPlacement !== 'hidden') {
+                        html += '<label for="' + inputId + '" class="gf-sublabel">';
+                        html += this.escapeHtml(textareaSubLabel);
+                        html += '</label>';
+                    }
+                    
+                    html += '<textarea ' +
                           'id="' + inputId + '" ' +
                           'name="' + inputName + '" ' +
                           'class="gf-input" ' +
@@ -279,6 +327,13 @@
                           (field.isRequired ? 'required ' : '') +
                           'aria-required="' + (field.isRequired ? 'true' : 'false') + '">' +
                           (field.defaultValue || '') + '</textarea>';
+                    
+                    // Add sublabel below if placement is 'below'
+                    if (textareaSubLabel && subLabelPlacement === 'below' && subLabelPlacement !== 'hidden') {
+                        html += '<label for="' + inputId + '" class="gf-sublabel">';
+                        html += this.escapeHtml(textareaSubLabel);
+                        html += '</label>';
+                    }
                     break;
                     
                 case 'select':
@@ -459,6 +514,10 @@
                           'aria-required="' + (field.isRequired ? 'true' : 'false') + '">';
                     break;
                     
+                case 'name':
+                    html = this.renderNameField(field, formData);
+                    break;
+                    
                 default:
                     console.warn('Unsupported field type:', field.type);
                     html = '<div class="gf-unsupported-field">Field type not supported: ' + 
@@ -478,9 +537,17 @@
             // Store form data
             form._gfData = formData;
             
+            // Add start time for bot detection
+            const startTimeInput = document.createElement('input');
+            startTimeInput.type = 'hidden';
+            startTimeInput.name = 'gf_embed_start_time';
+            startTimeInput.value = Math.floor(Date.now() / 1000);
+            form.appendChild(startTimeInput);
+            
             // Initialize analytics tracking
             if (typeof GFEmbedAnalytics !== 'undefined') {
-                GFEmbedAnalytics.init(formData.id, form);
+                const options = container._gfOptions || {};
+                GFEmbedAnalytics.init(formData.id, form, options);
             }
             
             // Initialize validation
@@ -639,7 +706,17 @@
                 url.searchParams.append('theme', options.theme);
             }
             
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            
+            if (options.apiKey) {
+                headers['X-API-Key'] = options.apiKey;
+            }
+            
             fetch(url.toString(), {
+                method: 'GET',
+                headers: headers,
                 credentials: 'include'
             })
             .then(response => response.json())
@@ -1304,6 +1381,173 @@
             html += '</div>';
             html += '</div>';
             
+            return html;
+        },
+        
+        /**
+         * Render name field with Gravity Forms structure
+         */
+        renderNameField: function(field, formData) {
+            const fieldId = field.id;
+            let html = '<div class="gf-name-field ginput_complex">';
+            
+            // Determine which name parts to show based on field settings
+            const nameFormat = field.nameFormat || 'normal'; // normal, simple, extended
+            const inputs = field.inputs || [];
+            const subLabelPlacement = field.subLabelPlacement || formData?.subLabelPlacement || 'below';
+            
+            if (nameFormat === 'simple') {
+                // Simple format - single input
+                html += '<input type="text" ';
+                html += 'id="input_' + fieldId + '" ';
+                html += 'name="input_' + fieldId + '" ';
+                html += 'class="gf-input" ';
+                html += (field.placeholder ? 'placeholder="' + this.escapeHtml(field.placeholder) + '" ' : '');
+                html += (field.defaultValue ? 'value="' + this.escapeHtml(field.defaultValue) + '" ' : '');
+                html += (field.isRequired ? 'required ' : '');
+                html += 'aria-required="' + (field.isRequired ? 'true' : 'false') + '">';
+            } else {
+                // Normal or extended format - multiple inputs
+                const nameFields = [];
+                
+                // Default name parts for normal format
+                if (nameFormat === 'normal' || inputs.length === 0) {
+                    nameFields.push(
+                        { id: fieldId + '.3', label: 'First', sublabel: 'First', isHidden: false },
+                        { id: fieldId + '.6', label: 'Last', sublabel: 'Last', isHidden: false }
+                    );
+                } else if (nameFormat === 'extended') {
+                    // Extended format includes prefix, first, middle, last, suffix
+                    nameFields.push(
+                        { id: fieldId + '.2', label: 'Prefix', sublabel: 'Prefix', isHidden: false },
+                        { id: fieldId + '.3', label: 'First', sublabel: 'First', isHidden: false },
+                        { id: fieldId + '.4', label: 'Middle', sublabel: 'Middle', isHidden: false },
+                        { id: fieldId + '.6', label: 'Last', sublabel: 'Last', isHidden: false },
+                        { id: fieldId + '.8', label: 'Suffix', sublabel: 'Suffix', isHidden: false }
+                    );
+                } else {
+                    // Use custom inputs if provided
+                    inputs.forEach(input => {
+                        if (!input.isHidden) {
+                            nameFields.push({
+                                id: input.id,
+                                label: input.label,
+                                sublabel: input.sublabel || input.label,
+                                isHidden: input.isHidden
+                            });
+                        }
+                    });
+                }
+                
+                // Render each name part
+                nameFields.forEach((namePart, index) => {
+                    const inputId = 'input_' + namePart.id;
+                    const inputName = 'input_' + namePart.id;
+                    const spanClass = 'name_' + namePart.label.toLowerCase().replace(' ', '_');
+                    
+                    html += '<span class="' + spanClass + ' ginput_' + spanClass + ' gf-name-part">';
+                    
+                    // Add sublabel above if placement is 'above'
+                    if (subLabelPlacement === 'above' && subLabelPlacement !== 'hidden') {
+                        html += '<label for="' + inputId + '" class="gf-sublabel">';
+                        html += this.escapeHtml(namePart.sublabel);
+                        html += '</label>';
+                    }
+                    
+                    // Add the input
+                    if (namePart.id.includes('.2')) {
+                        // Prefix - make it a dropdown
+                        html += '<select ';
+                        html += 'id="' + inputId + '" ';
+                        html += 'name="' + inputName + '" ';
+                        html += 'class="gf-input gf-name-prefix" ';
+                        html += (field.isRequired && index === 0 ? 'required ' : '');
+                        html += 'aria-label="' + this.escapeHtml(namePart.sublabel) + '">';
+                        html += '<option value=""></option>';
+                        html += '<option value="Mr.">Mr.</option>';
+                        html += '<option value="Mrs.">Mrs.</option>';
+                        html += '<option value="Ms.">Ms.</option>';
+                        html += '<option value="Dr.">Dr.</option>';
+                        html += '<option value="Prof.">Prof.</option>';
+                        html += '</select>';
+                    } else {
+                        // Regular text input
+                        html += '<input type="text" ';
+                        html += 'id="' + inputId + '" ';
+                        html += 'name="' + inputName + '" ';
+                        html += 'class="gf-input gf-name-' + namePart.label.toLowerCase() + '" ';
+                        html += (field.isRequired && (namePart.label === 'First' || namePart.label === 'Last') ? 'required ' : '');
+                        html += 'aria-label="' + this.escapeHtml(namePart.sublabel) + '">';
+                    }
+                    
+                    // Add sublabel below if placement is 'below'
+                    if (subLabelPlacement === 'below' && subLabelPlacement !== 'hidden') {
+                        html += '<label for="' + inputId + '" class="gf-sublabel">';
+                        html += this.escapeHtml(namePart.sublabel);
+                        html += '</label>';
+                    }
+                    
+                    html += '</span>';
+                });
+            }
+            
+            html += '</div>';
+            return html;
+        },
+        
+        /**
+         * Render email confirmation field
+         */
+        renderEmailConfirmField: function(field, formData) {
+            const fieldId = field.id;
+            const subLabelPlacement = field.subLabelPlacement || formData?.subLabelPlacement || 'below';
+            let html = '<div class="gf-email-confirm-field ginput_complex">';
+            
+            // Get inputs configuration
+            const inputs = field.inputs || [
+                { id: fieldId + '', label: 'Enter Email', sublabel: 'Enter Email' },
+                { id: fieldId + '.2', label: 'Confirm Email', sublabel: 'Confirm Email' }
+            ];
+            
+            inputs.forEach((input, index) => {
+                const inputId = 'input_' + input.id;
+                const inputName = 'input_' + input.id;
+                const spanClass = index === 0 ? 'ginput_left' : 'ginput_right';
+                
+                html += '<span class="' + spanClass + ' gf-email-confirm-part">';
+                
+                // Add sublabel above if placement is 'above'
+                if (subLabelPlacement === 'above' && subLabelPlacement !== 'hidden') {
+                    html += '<label for="' + inputId + '" class="gf-sublabel">';
+                    html += this.escapeHtml(input.sublabel || input.label);
+                    html += '</label>';
+                }
+                
+                // Add the email input
+                html += '<input type="email" ';
+                html += 'id="' + inputId + '" ';
+                html += 'name="' + inputName + '" ';
+                html += 'class="gf-input" ';
+                html += (field.isRequired ? 'required ' : '');
+                html += 'aria-label="' + this.escapeHtml(input.sublabel || input.label) + '" ';
+                html += (input.placeholder ? 'placeholder="' + this.escapeHtml(input.placeholder) + '" ' : '');
+                if (index === 1) {
+                    // Add data attribute to link confirmation field to primary email field
+                    html += 'data-confirms="input_' + fieldId + '" ';
+                }
+                html += '>';
+                
+                // Add sublabel below if placement is 'below'
+                if (subLabelPlacement === 'below' && subLabelPlacement !== 'hidden') {
+                    html += '<label for="' + inputId + '" class="gf-sublabel">';
+                    html += this.escapeHtml(input.sublabel || input.label);
+                    html += '</label>';
+                }
+                
+                html += '</span>';
+            });
+            
+            html += '</div>';
             return html;
         },
         
